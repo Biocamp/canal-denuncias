@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Enviar Denúncia</title>
+</head>
+<body>
+    <h1>Canal de Denúncias Anônimas</h1>
+    <form method="POST">
+        <label>Digite sua denúncia (anonimamente):</label><br>
+        <textarea name="texto" required></textarea><br><br>
+        <button type="submit">Enviar</button>
+    </form>
+    <a href="{{ url_for('logout') }}">Sair</a>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html>

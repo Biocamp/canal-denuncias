@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Denúncias</title>
+</head>
+<body>
+    <h1>Denúncias recebidas</h1>
+    <table border="1">
+        <tr>
+            <th>Data/Hora</th>
+            <th>Texto</th>
+        </tr>
+        {% for d in denuncias %}
+        <tr>
+            <td>{{ d.data_hora }}</td>
+            <td>{{ d.texto }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('logout') }}">Sair</a>
+</body>
+</html>
