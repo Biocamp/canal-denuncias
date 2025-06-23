@@ -48,6 +48,8 @@ def login():
 
 @app.route('/login/google')
 def login_google():
+    # O redirect_uri abaixo TEM QUE estar cadastrado no Google Cloud:
+    # https://denunciasbiocamp.up.railway.app/authorize
     redirect_uri = url_for('authorize', _external=True)
     return google.authorize_redirect(redirect_uri)
 
