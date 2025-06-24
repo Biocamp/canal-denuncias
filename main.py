@@ -1,22 +1,19 @@
 import os
 from flask import Flask, redirect, url_for, session, request, render_template, flash
-from authlib.integrations.flask_client import OAuth
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
-
-from werkzeug.middleware.proxy_fix import ProxyFix  # Corrige HTTPS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
-app.config['PREFERRED_URL_SCHEME'] = 'https'  # Garante URLs HTTPS
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # Corrige proxy para Railway
-
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# ---------- NOVO: Função para ler e-mails do arquivo ----------
+# Função para carregar e-mails autorizados do arquivo
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -24,29 +21,16 @@ def carregar_emails_autorizados(arquivo='autorizados.txt'):
         return [linha.strip().lower() for linha in f if linha.strip()]
 
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
-# --------------------------------------------------------------
-
-# OAuth Google config (usar envs)
-oauth = OAuth(app)
-google = oauth.register(
-    name='google',
-    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
-    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={'scope': 'openid email profile'}
-)
 
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
     data_hora = db.Column(db.DateTime, server_default=db.func.now())
-    # Email NÃO é salvo para manter anonimato!
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = session.get('user')
-        # Novo: Checa se o email está na lista do arquivo!
         if not user or user['email'].lower() not in EMAILS_AUTORIZADOS:
             flash('Acesso restrito apenas para usuários autorizados.')
             return redirect(url_for('login'))
@@ -58,26 +42,16 @@ def login_required(f):
 def index():
     return redirect(url_for('denuncia'))
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        email = request.form['email'].lower()
+        if email in EMAILS_AUTORIZADOS:
+            session['user'] = {'email': email}
+            return redirect(url_for('denuncia'))
+        else:
+            flash('E-mail não autorizado.')
     return render_template('login.html')
-
-@app.route('/login/google')
-def login_google():
-    redirect_uri = url_for('authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
-
-@app.route('/authorize')
-def authorize():
-    token = google.authorize_access_token()
-    user_info = token['userinfo']
-    email = user_info['email'].lower()
-    # Novo: Checa se o email está na lista do arquivo!
-    if email not in EMAILS_AUTORIZADOS:
-        flash('Acesso restrito apenas para usuários autorizados.')
-        return redirect(url_for('login'))
-    session['user'] = user_info
-    return redirect(url_for('denuncia'))
 
 @app.route('/logout')
 def logout():

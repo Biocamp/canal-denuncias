@@ -12,6 +12,7 @@
             <div class="col-md-5 col-lg-4 mx-auto">
                 <div class="card shadow p-4">
                     <h2 class="mb-4 text-center">Canal de Denúncias</h2>
+                    <p class="text-center mb-3 text-muted">Digite seu e-mail autorizado para acessar.</p>
                     {% with messages = get_flashed_messages() %}
                         {% if messages %}
                             <div class="alert alert-danger" role="alert">
@@ -19,9 +20,13 @@
                             </div>
                         {% endif %}
                     {% endwith %}
-                    <a href="{{ url_for('login_google') }}" class="btn btn-danger w-100 d-flex align-items-center justify-content-center">
-                        <img src="https://developers.google.com/identity/images/g-logo.png" width="24" class="me-2"> Entrar com Google
-                    </a>
+                    <form method="POST" action="{{ url_for('login') }}">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-mail autorizado</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                    </form>
                 </div>
             </div>
         </div>
