@@ -4,17 +4,27 @@ from authlib.integrations.flask_client import OAuth
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 
-from werkzeug.middleware.proxy_fix import ProxyFix  # Adicionado para corrigir HTTPS
+from werkzeug.middleware.proxy_fix import ProxyFix  # Corrige HTTPS
 
 app = Flask(__name__)
-app.config['PREFERRED_URL_SCHEME'] = 'https'  # Garante que as URLs externas sejam HTTPS
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # Corrige header de proxy para Railway
+app.config['PREFERRED_URL_SCHEME'] = 'https'  # Garante URLs HTTPS
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # Corrige proxy para Railway
 
 app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+# ---------- NOVO: Função para ler e-mails do arquivo ----------
+def carregar_emails_autorizados(arquivo='autorizados.txt'):
+    if not os.path.exists(arquivo):
+        return []
+    with open(arquivo, 'r', encoding='utf-8') as f:
+        return [linha.strip().lower() for linha in f if linha.strip()]
+
+EMAILS_AUTORIZADOS = carregar_emails_autorizados()
+# --------------------------------------------------------------
 
 # OAuth Google config (usar envs)
 oauth = OAuth(app)
@@ -36,8 +46,9 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = session.get('user')
-        if not user or not user['email'].endswith('@biocamp.com.br'):
-            flash('Acesso restrito ao domínio @biocamp.com.br.')
+        # Novo: Checa se o email está na lista do arquivo!
+        if not user or user['email'].lower() not in EMAILS_AUTORIZADOS:
+            flash('Acesso restrito apenas para usuários autorizados.')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -53,8 +64,6 @@ def login():
 
 @app.route('/login/google')
 def login_google():
-    # O redirect_uri abaixo TEM QUE estar cadastrado no Google Cloud:
-    # https://denunciasbiocamp.up.railway.app/authorize
     redirect_uri = url_for('authorize', _external=True)
     return google.authorize_redirect(redirect_uri)
 
@@ -62,8 +71,9 @@ def login_google():
 def authorize():
     token = google.authorize_access_token()
     user_info = token['userinfo']
-    email = user_info['email']
-    if not email.endswith('@biocamp.com.br'):
+    email = user_info['email'].lower()
+    # Novo: Checa se o email está na lista do arquivo!
+    if email not in EMAILS_AUTORIZADOS:
         flash('Acesso restrito apenas para usuários autorizados.')
         return redirect(url_for('login'))
     session['user'] = user_info
@@ -90,7 +100,7 @@ def denuncia():
 @login_required
 def admin():
     user = session.get('user')
-    if user['email'] != os.environ.get('ADMIN_EMAIL'):
+    if user['email'].lower() != os.environ.get('ADMIN_EMAIL', '').lower():
         return redirect(url_for('login'))
     denuncias = Denuncia.query.order_by(Denuncia.data_hora.desc()).all()
     return render_template('admin.html', denuncias=denuncias)
