@@ -13,9 +13,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Garante criação das tabelas antes da primeira requisição
-@app.before_first_request
-def initialize_database():
+# --- Definição de modelos ---
+class Denuncia(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    texto = db.Column(db.Text, nullable=False)
+    data_hora = db.Column(db.DateTime, server_default=db.func.now())
+
+# --- Criação automática das tabelas no import ---
+with app.app_context():
     db.create_all()
 
 # Função para carregar e-mails autorizados do arquivo
@@ -27,11 +32,7 @@ def carregar_emails_autorizados(arquivo='autorizados.txt'):
 
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
-class Denuncia(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    texto = db.Column(db.Text, nullable=False)
-    data_hora = db.Column(db.DateTime, server_default=db.func.now())
-
+# Decorator de acesso restrito
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -42,6 +43,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Rotas
 @app.route('/')
 @login_required
 def index():
@@ -68,8 +70,7 @@ def logout():
 def denuncia():
     if request.method == 'POST':
         texto = request.form['texto']
-        denuncia = Denuncia(texto=texto)
-        db.session.add(denuncia)
+        db.session.add(Denuncia(texto=texto))
         db.session.commit()
         flash('Denúncia enviada com sucesso!')
         return redirect(url_for('denuncia'))
@@ -84,6 +85,6 @@ def admin():
     denuncias = Denuncia.query.order_by(Denuncia.data_hora.desc()).all()
     return render_template('admin.html', denuncias=denuncias)
 
-# O bloco abaixo é apenas para rodar localmente; em produção o create_all já roda acima
+# bloco __main__ só para debug local
 if __name__ == "__main__":
     app.run(debug=True)
