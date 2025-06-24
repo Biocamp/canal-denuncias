@@ -13,6 +13,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+# Garante criação das tabelas antes da primeira requisição
+@app.before_first_request
+def initialize_database():
+    db.create_all()
+
 # Função para carregar e-mails autorizados do arquivo
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
@@ -79,7 +84,6 @@ def admin():
     denuncias = Denuncia.query.order_by(Denuncia.data_hora.desc()).all()
     return render_template('admin.html', denuncias=denuncias)
 
+# O bloco abaixo é apenas para rodar localmente; em produção o create_all já roda acima
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
