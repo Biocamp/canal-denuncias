@@ -1,7 +1,9 @@
 import os
 from flask import Flask, redirect, url_for, session, request, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
 from functools import wraps
+from threading import Thread
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
@@ -10,6 +12,16 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# --- Configuração Flask-Mail via ENV ---
+app.config.update(
+    MAIL_SERVER=os.environ.get('MAIL_SERVER'),
+    MAIL_PORT=int(os.environ.get('MAIL_PORT', 465)),
+    MAIL_USE_SSL=True,
+    MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
+    MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
+)
+mail = Mail(app)
 
 db = SQLAlchemy(app)
 
@@ -23,7 +35,7 @@ class Denuncia(db.Model):
 with app.app_context():
     db.create_all()
 
-# Função para carregar e-mails autorizados do arquivo
+# --- Função para carregar e-mails autorizados do arquivo ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -32,7 +44,24 @@ def carregar_emails_autorizados(arquivo='autorizados.txt'):
 
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
-# Decorator de acesso restrito
+# --- Funções de envio assíncrono de e-mail ao RH ---
+def _send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+def notify_rh(texto_denuncia):
+    rh_email = os.environ.get('RH_EMAIL')
+    if not rh_email:
+        return
+    msg = Message(
+        subject='Nova denúncia recebida',
+        sender=app.config['MAIL_USERNAME'],
+        recipients=[rh_email],
+        body=f"Uma nova denúncia foi registrada:\n\n{texto_denuncia}"
+    )
+    Thread(target=_send_async_email, args=(app, msg)).start()
+
+# --- Decorator de acesso restrito ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -43,7 +72,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Rotas
+# --- Rotas ---
 @app.route('/')
 @login_required
 def index():
@@ -72,6 +101,8 @@ def denuncia():
         texto = request.form['texto']
         db.session.add(Denuncia(texto=texto))
         db.session.commit()
+        # envia e-mail ao RH
+        notify_rh(texto)
         flash('Denúncia enviada com sucesso!')
         return redirect(url_for('denuncia'))
     return render_template('denuncia.html')
