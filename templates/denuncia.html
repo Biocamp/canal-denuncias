@@ -40,7 +40,10 @@
                 <div class="card card-custom shadow p-4">
                     <!-- Marca d'água -->
                     <img src="{{ url_for('static', filename='logo-biocamp.png') }}" alt="logo biocamp" class="marca-agua">
-                    <h2 class="mb-4 text-center" style="color:#1a355e;font-weight:600;">Canal de Denúncias Anônimas</h2>
+                    <h2 class="mb-4 text-center" style="color:#1a355e;font-weight:600;">
+                        Canal de Denúncias Anônimas
+                    </h2>
+
                     {% with messages = get_flashed_messages() %}
                         {% if messages %}
                             <div class="alert alert-success" role="alert">
@@ -48,14 +51,41 @@
                             </div>
                         {% endif %}
                     {% endwith %}
+
                     <form method="POST">
                         <div class="mb-3">
-                            <label for="texto" class="form-label">Digite sua denúncia (anonimamente):</label>
-                            <textarea class="form-control" name="texto" id="texto" rows="4" required></textarea>
+                            <label for="texto" class="form-label">
+                                Digite sua denúncia (anonimamente):
+                            </label>
+                            <textarea
+                                class="form-control"
+                                name="texto"
+                                id="texto"
+                                rows="4"
+                                required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Enviar</button>
+
+                        <!-- Checkbox de Termos -->
+                        <div class="form-check mb-3">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                name="terms"
+                                id="terms"
+                                required>
+                            <label class="form-check-label" for="terms">
+                                Li e aceito os termos e condições
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Enviar
+                        </button>
                     </form>
-                    <a href="{{ url_for('logout') }}" class="btn btn-link mt-3 w-100">Sair</a>
+
+                    <a href="{{ url_for('logout') }}" class="btn btn-link mt-3 w-100">
+                        Sair
+                    </a>
                 </div>
                 <div class="rodape">Canal de Denúncias | Biocamp</div>
             </div>

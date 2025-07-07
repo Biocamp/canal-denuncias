@@ -25,17 +25,16 @@ mail = Mail(app)
 
 db = SQLAlchemy(app)
 
-# --- Definição de modelos ---
+# --- Modelo de Denúncia ---
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
     data_hora = db.Column(db.DateTime, server_default=db.func.now())
 
-# --- Criação automática das tabelas no import ---
 with app.app_context():
     db.create_all()
 
-# --- Função para carregar e-mails autorizados do arquivo ---
+# --- Carrega emails autorizados ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -44,7 +43,7 @@ def carregar_emails_autorizados(arquivo='autorizados.txt'):
 
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
-# --- Funções de envio assíncrono de e-mail ao RH ---
+# --- Envio assíncrono de e-mail ---
 def _send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
@@ -98,13 +97,18 @@ def logout():
 @login_required
 def denuncia():
     if request.method == 'POST':
+        # Validação do checkbox de termos
+        if not request.form.get('terms'):
+            flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
+            return redirect(url_for('denuncia'))
+
         texto = request.form['texto']
         db.session.add(Denuncia(texto=texto))
         db.session.commit()
-        # envia e-mail ao RH
         notify_rh(texto)
-        flash('Denúncia enviada com sucesso!')
+        flash('Denúncia enviada com sucesso!', 'success')
         return redirect(url_for('denuncia'))
+
     return render_template('denuncia.html')
 
 @app.route('/admin')
@@ -116,6 +120,5 @@ def admin():
     denuncias = Denuncia.query.order_by(Denuncia.data_hora.desc()).all()
     return render_template('admin.html', denuncias=denuncias)
 
-# bloco __main__ só para debug local
 if __name__ == "__main__":
     app.run(debug=True)
