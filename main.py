@@ -22,10 +22,9 @@ app.config.update(
     MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
 )
 mail = Mail(app)
-
 db = SQLAlchemy(app)
 
-# --- Modelo de Denúncia ---
+# --- Modelo ---
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
@@ -34,7 +33,7 @@ class Denuncia(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- Carrega emails autorizados ---
+# --- Autorizados ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -43,7 +42,7 @@ def carregar_emails_autorizados(arquivo='autorizados.txt'):
 
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
-# --- Envio assíncrono de e-mail ---
+# --- Envio de e-mail ao RH ---
 def _send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
@@ -60,13 +59,13 @@ def notify_rh(texto_denuncia):
     )
     Thread(target=_send_async_email, args=(app, msg)).start()
 
-# --- Decorator de acesso restrito ---
+# --- Decorator de acesso ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = session.get('user')
         if not user or user['email'].lower() not in EMAILS_AUTORIZADOS:
-            flash('Acesso restrito apenas para usuários autorizados.')
+            flash('Acesso restrito apenas para usuários autorizados.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -85,7 +84,7 @@ def login():
             session['user'] = {'email': email}
             return redirect(url_for('denuncia'))
         else:
-            flash('E-mail não autorizado.')
+            flash('E-mail não autorizado.', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -97,7 +96,7 @@ def logout():
 @login_required
 def denuncia():
     if request.method == 'POST':
-        # Validação do checkbox de termos
+        # validação do checkbox
         if not request.form.get('terms'):
             flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
             return redirect(url_for('denuncia'))
@@ -110,6 +109,11 @@ def denuncia():
         return redirect(url_for('denuncia'))
 
     return render_template('denuncia.html')
+
+@app.route('/termos')
+@login_required
+def termos():
+    return render_template('termos.html')
 
 @app.route('/admin')
 @login_required

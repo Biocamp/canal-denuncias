@@ -44,18 +44,16 @@
                         Canal de Denúncias Anônimas
                     </h2>
 
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            <div class="alert alert-success" role="alert">
-                                {{ messages[0] }}
-                            </div>
-                        {% endif %}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% for category, msg in messages %}
+                            <div class="alert alert-{{ category }} mt-2">{{ msg }}</div>
+                        {% endfor %}
                     {% endwith %}
 
                     <form method="POST">
                         <div class="mb-3">
                             <label for="texto" class="form-label">
-                                Digite sua denúncia (Totalmente Sigilosa):
+                                Digite sua denúncia (anonimamente):
                             </label>
                             <textarea
                                 class="form-control"
@@ -65,7 +63,7 @@
                                 required></textarea>
                         </div>
 
-                        <!-- Checkbox de Termos -->
+                        <!-- Checkbox de Termos com link -->
                         <div class="form-check mb-3">
                             <input
                                 class="form-check-input"
@@ -74,7 +72,10 @@
                                 id="terms"
                                 required>
                             <label class="form-check-label" for="terms">
-                                Li e aceito os termos e condições
+                                Li e aceito os
+                                <a href="{{ url_for('termos') }}" target="_blank">
+                                  termos e condições
+                                </a>
                             </label>
                         </div>
 
