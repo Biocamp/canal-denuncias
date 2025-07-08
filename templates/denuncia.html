@@ -1,96 +1,144 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Enviar Denúncia</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: #f5f7fa;
-        }
-        .marca-agua {
-            position: absolute;
-            top: 53%;
-            left: 50%;
-            width: 80%;
-            max-width: 260px;
-            opacity: 0.07;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 1;
-            user-select: none;
-        }
-        .card-custom {
-            position: relative;
-            overflow: hidden;
-        }
-        .rodape {
-            font-size: 0.93rem;
-            color: #7b8493;
-            text-align: center;
-            margin-top: 18px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Enviar Denúncia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f7fa; }
+    .marca-agua {
+      position: absolute;
+      top: 53%;
+      left: 50%;
+      width: 80%;
+      max-width: 260px;
+      opacity: 0.07;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 1;
+      user-select: none;
+    }
+    .card-custom { position: relative; overflow: hidden; }
+    .rodape {
+      font-size: 0.93rem;
+      color: #7b8493;
+      text-align: center;
+      margin-top: 18px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-7 col-lg-6">
-                <div class="card card-custom shadow p-4">
-                    <!-- Marca d'água -->
-                    <img src="{{ url_for('static', filename='logo-biocamp.png') }}" alt="logo biocamp" class="marca-agua">
-                    <h2 class="mb-4 text-center" style="color:#1a355e;font-weight:600;">
-                        Canal de Denúncias Anônimas
-                    </h2>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-7 col-lg-6">
+        <div class="card card-custom shadow p-4">
+          <!-- Marca d'água -->
+          <img src="{{ url_for('static', filename='logo-biocamp.png') }}"
+               alt="logo biocamp"
+               class="marca-agua">
 
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% for category, msg in messages %}
-                            <div class="alert alert-{{ category }} mt-2">{{ msg }}</div>
-                        {% endfor %}
-                    {% endwith %}
+          <h2 class="mb-4 text-center" style="color:#1a355e;font-weight:600;">
+            Canal de Denúncias Anônimas
+          </h2>
 
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label for="texto" class="form-label">
-                                Digite sua denúncia (anonimamente):
-                            </label>
-                            <textarea
-                                class="form-control"
-                                name="texto"
-                                id="texto"
-                                rows="4"
-                                required></textarea>
-                        </div>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, msg in messages %}
+              <div class="alert alert-{{ category }} mt-2">{{ msg }}</div>
+            {% endfor %}
+          {% endwith %}
 
-                        <!-- Checkbox de Termos com link -->
-                        <div class="form-check mb-3">
-                            <input
-                                class="form-check-input"
-                                type="checkbox"
-                                name="terms"
-                                id="terms"
-                                required>
-                            <label class="form-check-label" for="terms">
-                                Li e aceito os
-                                <a href="{{ url_for('termos') }}" target="_blank">
-                                  termos e condições
-                                </a>
-                            </label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            Enviar
-                        </button>
-                    </form>
-
-                    <a href="{{ url_for('logout') }}" class="btn btn-link mt-3 w-100">
-                        Sair
-                    </a>
-                </div>
-                <div class="rodape">Canal de Denúncias | Biocamp</div>
+          <form method="POST">
+            <div class="mb-3">
+              <label for="texto" class="form-label">
+                Digite sua denúncia (anonimamente):
+              </label>
+              <textarea class="form-control"
+                        name="texto"
+                        id="texto"
+                        rows="4"
+                        required></textarea>
             </div>
+
+            <!-- Checkbox com link que abre o modal -->
+            <div class="form-check mb-3">
+              <input class="form-check-input"
+                     type="checkbox"
+                     name="terms"
+                     id="terms"
+                     required>
+              <label class="form-check-label" for="terms">
+                Li e aceito os
+                <a href="#"
+                   data-bs-toggle="modal"
+                   data-bs-target="#termsModal">
+                  termos e condições
+                </a>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+              Enviar
+            </button>
+          </form>
+
+          <a href="{{ url_for('logout') }}" class="btn btn-link mt-3 w-100">
+            Sair
+          </a>
         </div>
+
+        <div class="rodape">Canal de Denúncias | Biocamp</div>
+      </div>
     </div>
+  </div>
+
+  <!-- Modal de Termos e Condições -->
+  <div class="modal fade" id="termsModal" tabindex="-1"
+       aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="termsModalLabel">
+            Termo de Ciência e Aceite – Canal de Denúncias
+          </h5>
+          <button type="button" class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            A Biocamp Laboratórios Ltda. mantém ativo um Canal de Denúncias 24 horas,
+            disponível para colaboradores. Por ele, você pode relatar, com segurança
+            e confidencialidade, condutas como:
+          </p>
+          <ul>
+            <li>Assédio;</li>
+            <li>Discriminação;</li>
+            <li>Fraudes;</li>
+            <li>Corrupção;</li>
+            <li>Conflitos de interesse;</li>
+            <li>Riscos psicossociais (NR-01);</li>
+            <li>Violação ao Código de Conduta ou normas internas;</li>
+          </ul>
+          <p><strong>Declaro que compreendi e aceito que:</strong></p>
+          <ul>
+            <li>Todas as denúncias são tratadas de forma técnica, independente e imparcial, garantindo o sigilo das informações e a proteção contra retaliações;</li>
+            <li>O uso do canal deve ser responsável e de boa-fé, sob pena de medidas disciplinares e legais em caso de denúncias falsas ou abusivas;</li>
+            <li>A apuração poderá gerar ações corretivas, disciplinares ou legais, conforme a gravidade dos fatos;</li>
+            <li>Estou ciente das diretrizes da Biocamp e do compromisso de sua equipe em manter a confidencialidade e a integridade do processo.</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+                  data-bs-dismiss="modal">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts do Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
