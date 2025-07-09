@@ -2,40 +2,105 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Acompanhar Denúncia</title>
+    <title>Acompanhe sua denúncia</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 2em; }
-        .box { max-width: 400px; margin: auto; padding: 2em; background: #f9f9f9; border-radius: 10px; box-shadow: 0 2px 12px #0002; }
-        .resultado { margin-top: 2em; }
-        label, input { display: block; width: 100%; }
-        input[type="text"] { padding: 0.5em; margin-bottom: 1em; border-radius: 5px; border: 1px solid #ccc; }
-        button { padding: 0.5em 1em; border: none; background: #4a90e2; color: #fff; border-radius: 5px; cursor: pointer; }
-        ul { padding-left: 1em; }
+        body {
+            background: #f5f7fa;
+            font-family: Arial, sans-serif;
+        }
+        .card-custom {
+            max-width: 480px;
+            margin: 60px auto;
+            padding: 40px 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px #0001;
+        }
+        h2 {
+            color: #1a2c44;
+            margin-bottom: 24px;
+        }
+        label {
+            font-size: 1.1rem;
+            color: #222;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 16px 0;
+            border-radius: 6px;
+            border: 1px solid #dbe2ee;
+            font-size: 1rem;
+        }
+        .btn-acompanhar {
+            display: inline-block;
+            background: #6ea8fe;
+            color: #fff !important;
+            padding: 12px 22px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border: none;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-acompanhar:hover {
+            background: #4186ec;
+            color: #eaf2ff !important;
+        }
+        .msg-flash {
+            text-align: center;
+            margin: 18px 0 6px 0;
+            padding: 10px;
+            border-radius: 6px;
+            background: #e6f1ff;
+            color: #29599a;
+            border: 1px solid #b1d0f7;
+        }
+        .info-status {
+            background: #f3f7ff;
+            border-left: 4px solid #6ea8fe;
+            padding: 18px 18px 12px 18px;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            border-radius: 7px;
+        }
+        .footer {
+            text-align:center; color:#888; margin-top:24px;
+        }
     </style>
 </head>
 <body>
-    <div class="box">
+    <div class="card-custom">
         <h2>Acompanhe sua denúncia</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="msg-flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <form method="POST">
             <label for="protocolo">Digite o número do seu protocolo:</label>
-            <input type="text" id="protocolo" name="protocolo" required>
-            <button type="submit">Consultar</button>
+            <input type="text" name="protocolo" id="protocolo" required>
+            <button type="submit" class="btn-acompanhar" style="width:auto;">Consultar</button>
         </form>
-        <div class="resultado">
-        {% if resultado %}
-            {% if resultado == 'not_found' %}
-                <p><strong>Protocolo não encontrado.</strong> Verifique se digitou corretamente.</p>
-            {% else %}
-                <h3>Status da sua denúncia:</h3>
-                <ul>
-                    <li><strong>Data do envio:</strong> {{ resultado.data }}</li>
-                    <li><strong>Status:</strong> {{ resultado.status }}</li>
-                    <li><strong>Observação do RH:</strong> {{ resultado.observacao }}</li>
-                    <li><strong>Descrição da denúncia:</strong> {{ resultado.texto }}</li>
-                </ul>
-            {% endif %}
-        {% endif %}
+        <div style="text-align:center; margin-top: 18px;">
+            <a href="{{ url_for('denuncia') }}" class="btn-acompanhar">Voltar</a>
         </div>
+        {% if denuncia %}
+        <div class="info-status">
+            <b>Status:</b> {{ denuncia.status }}<br>
+            {% if denuncia.observacao %}
+                <b>Observações:</b> {{ denuncia.observacao }}<br>
+            {% endif %}
+            <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+        {% endif %}
     </div>
+    <div class="footer">Canal de Denúncias | Biocamp</div>
 </body>
 </html>

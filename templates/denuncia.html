@@ -54,18 +54,21 @@
             margin-top: 10px;
             margin-bottom: 10px;
         }
-        .link-consulta {
-            text-align: center;
-            margin-top: 28px;
-        }
-        .link-consulta a {
-            color: #386ad7;
-            font-weight: bold;
+        .btn-acompanhar {
+            display: inline-block;
+            background: #6ea8fe;
+            color: #fff !important;
+            padding: 12px 22px;
+            border-radius: 7px;
             text-decoration: none;
-            transition: color .2s;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 20px;
+            transition: background .2s;
         }
-        .link-consulta a:hover {
-            color: #0d1c4b;
+        .btn-acompanhar:hover {
+            background: #4186ec;
+            color: #eaf2ff !important;
         }
         .msg-flash {
             text-align: center;
@@ -108,8 +111,8 @@
             </div>
             <button type="submit">Enviar</button>
         </form>
-        <div class="link-consulta">
-            <a href="{{ url_for('consulta') }}">Acompanhar denúncia pelo número de protocolo</a>
+        <div style="text-align:center;">
+            <a href="{{ url_for('consulta') }}" class="btn-acompanhar">Acompanhar denúncia pelo número de protocolo</a>
         </div>
         <a href="{{ url_for('logout') }}" class="sair-link">Sair</a>
     </div>
