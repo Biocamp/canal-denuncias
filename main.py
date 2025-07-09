@@ -1,11 +1,11 @@
 import os
-import uuid
 from flask import Flask, redirect, url_for, session, request, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from functools import wraps
 from threading import Thread
 from werkzeug.middleware.proxy_fix import ProxyFix
+import secrets
 
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
@@ -14,7 +14,7 @@ app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# --- Configuração Flask-Mail via ENV ---
+# Configuração Flask-Mail via ENV
 app.config.update(
     MAIL_SERVER=os.environ.get('MAIL_SERVER'),
     MAIL_PORT=int(os.environ.get('MAIL_PORT', 465)),
@@ -29,13 +29,14 @@ db = SQLAlchemy(app)
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
-    protocolo = db.Column(db.String(20), unique=True)  # NOVO CAMPO
     data_hora = db.Column(db.DateTime, server_default=db.func.now())
+    protocolo = db.Column(db.String(20), unique=True)
+    status = db.Column(db.String(30), default='Recebida')       # <--- novo campo
+    observacao = db.Column(db.Text)                             # <--- novo campo
 
 with app.app_context():
     db.create_all()
 
-# --- Autorizados ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -44,7 +45,6 @@ def carregar_emails_autorizados(arquivo='autorizados.txt'):
 
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
-# --- Envio de e-mail ao RH ---
 def _send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
@@ -57,11 +57,10 @@ def notify_rh(texto_denuncia, protocolo):
         subject='Nova denúncia recebida',
         sender=app.config['MAIL_USERNAME'],
         recipients=[rh_email],
-        body=f"Uma nova denúncia foi registrada:\n\nPROTOCOLO: {protocolo}\n\n{texto_denuncia}"
+        body=f"Uma nova denúncia foi registrada:\n\n{texto_denuncia}\n\nProtocolo: {protocolo}"
     )
     Thread(target=_send_async_email, args=(app, msg)).start()
 
-# --- Decorator de acesso ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -72,7 +71,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# --- Rotas ---
 @app.route('/')
 @login_required
 def index():
@@ -98,15 +96,12 @@ def logout():
 @login_required
 def denuncia():
     if request.method == 'POST':
-        # validação do checkbox
         if not request.form.get('terms'):
             flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
             return redirect(url_for('denuncia'))
 
         texto = request.form['texto']
-        protocolo = str(uuid.uuid4())[:8]  # Gera protocolo aleatório curto
-
-        # Salva denúncia com protocolo
+        protocolo = secrets.token_hex(6).upper()  # Protocolo aleatório, ex: A3C12F3E9B7D
         nova_denuncia = Denuncia(texto=texto, protocolo=protocolo)
         db.session.add(nova_denuncia)
         db.session.commit()
@@ -129,6 +124,25 @@ def admin():
         return redirect(url_for('login'))
     denuncias = Denuncia.query.order_by(Denuncia.data_hora.desc()).all()
     return render_template('admin.html', denuncias=denuncias)
+
+# -------- NOVA ROTA PARA CONSULTA DE PROTOCOLO --------
+@app.route('/consulta', methods=['GET', 'POST'])
+def consulta():
+    resultado = None
+    if request.method == 'POST':
+        protocolo = request.form['protocolo'].strip().upper()
+        denuncia = Denuncia.query.filter_by(protocolo=protocolo).first()
+        if denuncia:
+            resultado = {
+                'status': denuncia.status or 'Recebida',
+                'observacao': denuncia.observacao or 'Em análise',
+                'data': denuncia.data_hora.strftime('%d/%m/%Y %H:%M'),
+                'texto': denuncia.texto
+            }
+        else:
+            resultado = 'not_found'
+    return render_template('consulta.html', resultado=resultado)
+# -------- FIM CONSULTA PROTOCOLO --------
 
 if __name__ == "__main__":
     app.run(debug=True)

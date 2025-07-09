@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Acompanhar Denúncia</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .box { max-width: 400px; margin: auto; padding: 2em; background: #f9f9f9; border-radius: 10px; box-shadow: 0 2px 12px #0002; }
+        .resultado { margin-top: 2em; }
+        label, input { display: block; width: 100%; }
+        input[type="text"] { padding: 0.5em; margin-bottom: 1em; border-radius: 5px; border: 1px solid #ccc; }
+        button { padding: 0.5em 1em; border: none; background: #4a90e2; color: #fff; border-radius: 5px; cursor: pointer; }
+        ul { padding-left: 1em; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Acompanhe sua denúncia</h2>
+        <form method="POST">
+            <label for="protocolo">Digite o número do seu protocolo:</label>
+            <input type="text" id="protocolo" name="protocolo" required>
+            <button type="submit">Consultar</button>
+        </form>
+        <div class="resultado">
+        {% if resultado %}
+            {% if resultado == 'not_found' %}
+                <p><strong>Protocolo não encontrado.</strong> Verifique se digitou corretamente.</p>
+            {% else %}
+                <h3>Status da sua denúncia:</h3>
+                <ul>
+                    <li><strong>Data do envio:</strong> {{ resultado.data }}</li>
+                    <li><strong>Status:</strong> {{ resultado.status }}</li>
+                    <li><strong>Observação do RH:</strong> {{ resultado.observacao }}</li>
+                    <li><strong>Descrição da denúncia:</strong> {{ resultado.texto }}</li>
+                </ul>
+            {% endif %}
+        {% endif %}
+        </div>
+    </div>
+</body>
+</html>
