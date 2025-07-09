@@ -1,4 +1,5 @@
 import os
+import uuid
 from flask import Flask, redirect, url_for, session, request, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
@@ -28,6 +29,7 @@ db = SQLAlchemy(app)
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
+    protocolo = db.Column(db.String(20), unique=True)  # NOVO CAMPO
     data_hora = db.Column(db.DateTime, server_default=db.func.now())
 
 with app.app_context():
@@ -47,7 +49,7 @@ def _send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
 
-def notify_rh(texto_denuncia):
+def notify_rh(texto_denuncia, protocolo):
     rh_email = os.environ.get('RH_EMAIL')
     if not rh_email:
         return
@@ -55,7 +57,7 @@ def notify_rh(texto_denuncia):
         subject='Nova denúncia recebida',
         sender=app.config['MAIL_USERNAME'],
         recipients=[rh_email],
-        body=f"Uma nova denúncia foi registrada:\n\n{texto_denuncia}"
+        body=f"Uma nova denúncia foi registrada:\n\nPROTOCOLO: {protocolo}\n\n{texto_denuncia}"
     )
     Thread(target=_send_async_email, args=(app, msg)).start()
 
@@ -102,10 +104,14 @@ def denuncia():
             return redirect(url_for('denuncia'))
 
         texto = request.form['texto']
-        db.session.add(Denuncia(texto=texto))
+        protocolo = str(uuid.uuid4())[:8]  # Gera protocolo aleatório curto
+
+        # Salva denúncia com protocolo
+        nova_denuncia = Denuncia(texto=texto, protocolo=protocolo)
+        db.session.add(nova_denuncia)
         db.session.commit()
-        notify_rh(texto)
-        flash('Denúncia enviada com sucesso!', 'success')
+        notify_rh(texto, protocolo)
+        flash(f'Denúncia enviada com sucesso! Protocolo: {protocolo}', 'success')
         return redirect(url_for('denuncia'))
 
     return render_template('denuncia.html')
