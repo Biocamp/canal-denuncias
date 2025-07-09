@@ -19,6 +19,7 @@
         h2 {
             color: #1a2c44;
             margin-bottom: 24px;
+            text-align: center;
         }
         label {
             font-size: 1.1rem;
@@ -33,19 +34,19 @@
             font-size: 1rem;
         }
         .btn-acompanhar {
-            display: inline-block;
             background: #6ea8fe;
             color: #fff !important;
-            padding: 12px 22px;
+            padding: 12px 32px;
             border-radius: 7px;
             text-decoration: none;
             font-weight: bold;
             font-size: 1rem;
-            margin-top: 10px;
-            margin-bottom: 10px;
             border: none;
             cursor: pointer;
             transition: background .2s;
+            margin: 0 10px;
+            display: inline-block;
+            min-width: 120px;
         }
         .btn-acompanhar:hover {
             background: #4186ec;
@@ -68,6 +69,10 @@
             margin-bottom: 16px;
             border-radius: 7px;
         }
+        .btns-center {
+            text-align: center;
+            margin-top: 30px;
+        }
         .footer {
             text-align:center; color:#888; margin-top:24px;
         }
@@ -86,11 +91,11 @@
         <form method="POST">
             <label for="protocolo">Digite o número do seu protocolo:</label>
             <input type="text" name="protocolo" id="protocolo" required>
-            <button type="submit" class="btn-acompanhar" style="width:auto;">Consultar</button>
+            <div class="btns-center">
+                <button type="submit" class="btn-acompanhar">Consultar</button>
+                <a href="{{ url_for('denuncia') }}" class="btn-acompanhar">Voltar</a>
+            </div>
         </form>
-        <div style="text-align:center; margin-top: 18px;">
-            <a href="{{ url_for('denuncia') }}" class="btn-acompanhar">Voltar</a>
-        </div>
         {% if denuncia %}
         <div class="info-status">
             <b>Status:</b> {{ denuncia.status }}<br>

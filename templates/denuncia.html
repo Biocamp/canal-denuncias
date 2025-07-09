@@ -55,19 +55,21 @@
             margin-bottom: 10px;
         }
         .btn-acompanhar {
-            display: inline-block;
-            background: #6ea8fe;
+            display: block;
+            background: #49b87a;
             color: #fff !important;
-            padding: 12px 22px;
+            padding: 16px 22px;
             border-radius: 7px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 1rem;
-            margin-top: 20px;
+            font-size: 1.15rem;
+            margin: 22px auto 0 auto;
             transition: background .2s;
+            width: 90%;
+            text-align: center;
         }
         .btn-acompanhar:hover {
-            background: #4186ec;
+            background: #32995f;
             color: #eaf2ff !important;
         }
         .msg-flash {
@@ -111,9 +113,7 @@
             </div>
             <button type="submit">Enviar</button>
         </form>
-        <div style="text-align:center;">
-            <a href="{{ url_for('consulta') }}" class="btn-acompanhar">Acompanhar denúncia pelo número de protocolo</a>
-        </div>
+        <a href="{{ url_for('consulta') }}" class="btn-acompanhar">Acompanhar denúncia pelo número de protocolo</a>
         <a href="{{ url_for('logout') }}" class="sair-link">Sair</a>
     </div>
     <footer style="text-align:center; color:#888; margin-top:24px;">
