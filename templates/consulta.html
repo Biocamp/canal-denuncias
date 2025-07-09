@@ -98,6 +98,7 @@
         </form>
         {% if denuncia %}
         <div class="info-status">
+            <b>Protocolo:</b> {{ denuncia.protocolo }}<br>
             <b>Status:</b> {{ denuncia.status }}<br>
             {% if denuncia.observacao %}
                 <b>Observações:</b> {{ denuncia.observacao }}<br>
