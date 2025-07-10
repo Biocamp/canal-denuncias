@@ -107,9 +107,19 @@ def index():
 def login():
     if request.method == 'POST':
         email = request.form['email'].lower()
-        if email in EMAILS_AUTORIZADOS or email == os.environ.get('RH_EMAIL', '').lower() or email == os.environ.get('ADMIN_EMAIL', '').lower():
+        rh_email = os.environ.get('RH_EMAIL', '').lower()
+        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+        if (
+            email in EMAILS_AUTORIZADOS
+            or email == rh_email
+            or email == admin_email
+        ):
             session['user'] = {'email': email}
-            return redirect(url_for('denuncia'))
+            # Redireciona admin/RH para o painel, usuário comum para denúncia
+            if email == rh_email or email == admin_email:
+                return redirect(url_for('admin'))
+            else:
+                return redirect(url_for('denuncia'))
         else:
             flash('E-mail não autorizado.', 'danger')
     return render_template('login.html')
