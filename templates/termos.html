@@ -26,10 +26,26 @@
 
     <p><strong>Declaro que compreendi e aceito que:</strong></p>
     <ul>
-      <li>Todas as denúncias são tratadas de forma técnica, independente e imparcial, garantindo o sigilo das informações e a proteção contra retaliações;</li>
-      <li>O uso do canal deve ser responsável e de boa-fé, sob pena de medidas disciplinares e legais em caso de denúncias falsas ou abusivas;</li>
-      <li>A apuração poderá gerar ações corretivas, disciplinares ou legais, conforme a gravidade dos fatos;</li>
-      <li>Estou ciente das diretrizes da Biocamp e do compromisso de sua equipe em manter a confidencialidade e a integridade do processo.</li>
+      <div id="termosModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('termosModal')">&times;</span>
+    <h2 style="text-align:center; color:#203050;">Termos e Condições</h2>
+    <div style="text-align: left; font-size:1.1rem; margin-top:20px; line-height:1.5;">
+      <b>Este canal de denúncias destina-se exclusivamente ao recebimento de relatos de condutas consideradas irregulares, ilícitas, antiéticas, assédio, discriminação, violação de normas internas ou legais, bem como quaisquer práticas contrárias ao Código de Conduta da empresa.</b>
+      <br><br>
+      Todas as denúncias registradas neste canal serão tratadas com absoluta confidencialidade e encaminhadas para análise pelo setor de Recursos Humanos, que tomará as medidas cabíveis conforme a legislação vigente e as políticas internas da empresa.
+      <br><br>
+      O denunciante pode optar por se identificar ou permanecer anônimo. Em qualquer hipótese, não será possível editar ou excluir a denúncia ou os anexos após o envio, garantindo a integridade do processo.
+      <br><br>
+      A qualquer momento, o denunciante poderá acompanhar o andamento da denúncia pelo número de protocolo gerado após o envio. O canal não se destina ao envio de sugestões, reclamações sobre procedimentos internos, ou assuntos alheios à finalidade do canal.
+      <br><br>
+      É vedado o uso deste canal para denúncias falsas, de má-fé ou com o objetivo de prejudicar terceiros injustamente. A constatação de uso indevido sujeitará o responsável às sanções administrativas e legais cabíveis.
+      <br><br>
+      <b>Ao prosseguir, o denunciante declara ter ciência e concordar integralmente com estes termos e condições de uso do canal de denúncias.</b>
+    </div>
+  </div>
+</div>
+
     </ul>
 
     <a href="{{ url_for('denuncia') }}" class="btn btn-secondary mt-3">
