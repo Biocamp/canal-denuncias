@@ -15,6 +15,7 @@
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 2px 16px #0001;
+            position: relative;
         }
         h2 {
             text-align: center;
@@ -89,60 +90,53 @@
             color: #29599a;
             text-decoration: underline;
         }
-        .input-anexo {
-            width: 100%;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-        /* Modal */
+        /* Modal styles */
         .modal-bg {
+            display: none;
             position: fixed;
             z-index: 99;
-            left: 0; top: 0;
-            width: 100vw; height: 100vh;
-            background: #1b233944;
-            display: none;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            background: #232a3847;
             align-items: center;
             justify-content: center;
         }
-        .modal {
-            background: #fff;
-            border-radius: 12px;
-            padding: 32px 28px 22px 28px;
-            max-width: 400px;
-            width: 94vw;
-            box-shadow: 0 6px 32px #0003;
-            position: relative;
-            animation: pop .18s;
+        .modal-bg.active {
+            display: flex;
         }
-        @keyframes pop { from { transform: scale(.88); opacity:0 } to { transform: scale(1); opacity:1 } }
-        .modal-close {
-            position: absolute;
-            top: 8px; right: 14px;
-            background: transparent;
-            border: none;
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: #555;
+        .modal-box {
+            background: #fff;
+            border-radius: 14px;
+            max-width: 450px;
+            width: 95vw;
+            box-shadow: 0 2px 24px #0003;
+            padding: 32px 26px 28px 26px;
+            position: relative;
+            animation: pop .18s cubic-bezier(.47,1.64,.41,.8);
         }
         .modal-title {
-            font-size: 1.28rem;
-            color: #1a2c44;
-            font-weight: bold;
-            margin-bottom: 20px;
             text-align: center;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #26354a;
+            margin-bottom: 16px;
         }
         .modal-content {
-            font-size: 1.08rem;
-            color: #223;
-            margin-bottom: 14px;
+            font-size: 1.12rem;
+            color: #273a47;
+            margin-bottom: 18px;
         }
-        .erro-anexo {
-            color: #d32020;
-            text-align: left;
-            font-size: 0.99rem;
-            margin-bottom: 4px;
-            margin-top: 4px;
+        .modal-close {
+            position: absolute;
+            right: 18px;
+            top: 12px;
+            font-size: 1.7rem;
+            color: #444b;
+            cursor: pointer;
+        }
+        .modal-close:hover { color: #000b; }
+        @keyframes pop {
+            0% { transform: scale(.93);}
+            100% { transform: scale(1);}
         }
     </style>
 </head>
@@ -159,19 +153,15 @@
         <form method="POST" enctype="multipart/form-data">
             <label for="texto">Digite sua denúncia:</label>
             <textarea name="texto" id="texto" required></textarea>
-
-            <label for="anexo" style="margin-top:10px;display:block;font-weight:bold;">Anexar arquivo (opcional):</label>
-            <input type="file" name="anexo" id="anexo" class="input-anexo" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar">
-
-            {% if anexo_erro %}
-                <div class="erro-anexo">{{ anexo_erro }}</div>
-            {% endif %}
-
+            <div style="margin-bottom:15px;margin-top:10px;">
+                <label for="anexo"><b>Anexo:</b></label>
+                <input type="file" name="anexo" id="anexo" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+            </div>
             <div class="terms">
-                <input type="checkbox" name="terms" id="terms">
+                <input type="checkbox" name="terms" id="terms" required>
                 <label for="terms">
                     Li e aceito os
-                    <span onclick="abrirTermos()" style="color:#235cff; cursor:pointer; text-decoration:underline;">termos e condições</span>
+                    <a href="#" id="open-termos">termos e condições</a>
                 </label>
             </div>
             <button type="submit">Enviar</button>
@@ -179,38 +169,41 @@
         <a href="{{ url_for('consulta') }}" class="btn-acompanhar">Acompanhar denúncia pelo número de protocolo</a>
         <a href="{{ url_for('logout') }}" class="sair-link">Sair</a>
     </div>
+    <!-- Modal de Termos -->
+    <div id="modal-termos" class="modal-bg">
+        <div class="modal-box">
+            <span class="modal-close" onclick="fecharTermos()">&times;</span>
+            <div class="modal-title">Termos e Condições</div>
+            <div class="modal-content" style="max-height:300px;overflow:auto;">
+                <b>Orientações de uso do canal de denúncias:</b>
+                <p>
+                  Este canal é confidencial. A denúncia será analisada pelo RH.<br>
+                  Após o envio, não é possível editar ou excluir a denúncia ou anexos.<br><br>
+                  O acompanhamento pode ser feito pelo número de protocolo gerado.<br><br>
+                  Ao utilizar este canal, o usuário declara estar ciente de que o uso é restrito para relatos de condutas irregulares, conforme legislação vigente.<br><br>
+                  Denúncias falsas ou de má-fé poderão acarretar sanções administrativas e legais.
+                </p>
+            </div>
+        </div>
+    </div>
     <footer style="text-align:center; color:#888; margin-top:24px;">
         Canal de Denúncias | Biocamp
     </footer>
-
-    <!-- Modal dos termos -->
-    <div class="modal-bg" id="modal-termos">
-      <div class="modal">
-        <button class="modal-close" onclick="fecharModalTermos()">&times;</button>
-        <div class="modal-title">Termos e Condições</div>
-        <div class="modal-content" style="max-height:300px;overflow:auto;">
-          <b>Exemplo de Termos:</b>
-          <p>
-            Este canal é confidencial. O uso é restrito conforme previsto pela legislação vigente.<br>
-            A denúncia será analisada pelo RH. Você poderá acompanhar o andamento do seu protocolo.<br>
-            Não será possível excluir ou editar a denúncia e anexos após o envio.
-          </p>
-        </div>
-      </div>
-    </div>
     <script>
-    function abrirTermos() {
-        document.getElementById('modal-termos').style.display = 'flex';
-    }
-    function fecharModalTermos() {
-        document.getElementById('modal-termos').style.display = 'none';
-    }
-    // Fecha ao clicar fora do modal
-    document.addEventListener('DOMContentLoaded', ()=>{
-      document.getElementById('modal-termos').onclick = e=>{
-        if(e.target===e.currentTarget) fecharModalTermos();
-      }
-    });
+        document.getElementById('open-termos').onclick = function(e){
+            e.preventDefault();
+            document.getElementById('modal-termos').classList.add('active');
+        };
+        function fecharTermos() {
+            document.getElementById('modal-termos').classList.remove('active');
+        }
+        // Fechar com ESC ou clique fora
+        document.addEventListener('keydown', function(e){
+            if (e.key === "Escape") fecharTermos();
+        });
+        document.getElementById('modal-termos').onclick = function(e){
+            if (e.target === this) fecharTermos();
+        };
     </script>
 </body>
 </html>
