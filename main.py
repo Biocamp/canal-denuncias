@@ -1,15 +1,11 @@
 import os
 from flask import Flask, redirect, url_for, session, request, render_template, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail, Message
+from flask_mail import Mail, Message as MailMessage
 from functools import wraps
 from threading import Thread
 from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.utils import secure_filename
 import secrets
-
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
@@ -17,8 +13,11 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # --- Configuração Flask-Mail via ENV ---
 app.config.update(
@@ -31,7 +30,7 @@ app.config.update(
 mail = Mail(app)
 db = SQLAlchemy(app)
 
-# --- Modelo ---
+# --- Modelos ---
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
@@ -39,7 +38,16 @@ class Denuncia(db.Model):
     protocolo = db.Column(db.String(20), unique=True, nullable=False)
     status = db.Column(db.String(30), default='Recebida')
     observacao = db.Column(db.Text, nullable=True)
-    anexo = db.Column(db.String(256), nullable=True)  # novo campo para anexo
+    anexo = db.Column(db.String(255), nullable=True)  # Para o upload de arquivo
+
+# NOVO: tabela de mensagens
+class Mensagem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    denuncia_id = db.Column(db.Integer, db.ForeignKey('denuncia.id'), nullable=False)
+    texto = db.Column(db.Text, nullable=False)
+    autor = db.Column(db.String(10))  # 'Usuário' ou 'RH'
+    data_hora = db.Column(db.DateTime, server_default=db.func.now())
+    denuncia = db.relationship('Denuncia', backref=db.backref('mensagens', lazy=True, order_by="Mensagem.data_hora"))
 
 with app.app_context():
     db.create_all()
@@ -62,7 +70,7 @@ def notify_rh(texto_denuncia, protocolo):
     rh_email = os.environ.get('RH_EMAIL')
     if not rh_email:
         return
-    msg = Message(
+    msg = MailMessage(
         subject='Nova denúncia recebida',
         sender=app.config['MAIL_USERNAME'],
         recipients=[rh_email],
@@ -80,15 +88,6 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
-
-# --- Upload helper ---
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # --- Rotas ---
 @app.route('/')
@@ -112,6 +111,10 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 @app.route('/denuncia', methods=['GET', 'POST'])
 @login_required
 def denuncia():
@@ -122,20 +125,19 @@ def denuncia():
 
         texto = request.form['texto']
         protocolo = secrets.token_hex(6).upper()
-        anexo = None
 
+        filename = None
         file = request.files.get('anexo')
-        if file and file.filename != '' and allowed_file(file.filename):
-            filename = protocolo + '_' + secure_filename(file.filename)
+        if file and file.filename:
+            filename = f"{protocolo}_{file.filename}"
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            anexo = filename
 
         nova_denuncia = Denuncia(
             texto=texto,
             protocolo=protocolo,
             status='Recebida',
             observacao=None,
-            anexo=anexo
+            anexo=filename
         )
         db.session.add(nova_denuncia)
         db.session.commit()
@@ -162,13 +164,32 @@ def admin():
 @app.route('/consulta', methods=['GET', 'POST'])
 def consulta():
     denuncia = None
+    mensagens = []
+    protocolo = ""
     if request.method == 'POST':
         protocolo = request.form.get('protocolo', '').strip().upper()
         if protocolo:
             denuncia = Denuncia.query.filter_by(protocolo=protocolo).first()
             if not denuncia:
                 flash("Nenhuma denúncia encontrada para esse protocolo.", "warning")
-    return render_template('consulta.html', denuncia=denuncia)
+            else:
+                mensagens = Mensagem.query.filter_by(denuncia_id=denuncia.id).order_by(Mensagem.data_hora).all()
+    return render_template('consulta.html', denuncia=denuncia, mensagens=mensagens, protocolo=protocolo)
+
+@app.route('/chat/<protocolo>', methods=['POST'])
+def chat(protocolo):
+    denuncia = Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
+    texto = request.form.get('mensagem', '').strip()
+    if texto:
+        mensagem = Mensagem(
+            denuncia_id=denuncia.id,
+            texto=texto,
+            autor='Usuário'
+        )
+        db.session.add(mensagem)
+        db.session.commit()
+    # Redireciona para consulta já preenchida com o protocolo
+    return redirect(url_for('consulta') + f"#chat-{protocolo}")
 
 if __name__ == "__main__":
     app.run(debug=True)
