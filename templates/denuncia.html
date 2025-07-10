@@ -89,13 +89,60 @@
             color: #29599a;
             text-decoration: underline;
         }
-        .anexo-label {
-            display: block;
-            margin: 16px 0 4px 0;
+        .input-anexo {
+            width: 100%;
+            margin-bottom: 10px;
             font-size: 1rem;
         }
-        input[type="file"] {
-            margin-bottom: 10px;
+        /* Modal */
+        .modal-bg {
+            position: fixed;
+            z-index: 99;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: #1b233944;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 32px 28px 22px 28px;
+            max-width: 400px;
+            width: 94vw;
+            box-shadow: 0 6px 32px #0003;
+            position: relative;
+            animation: pop .18s;
+        }
+        @keyframes pop { from { transform: scale(.88); opacity:0 } to { transform: scale(1); opacity:1 } }
+        .modal-close {
+            position: absolute;
+            top: 8px; right: 14px;
+            background: transparent;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: #555;
+        }
+        .modal-title {
+            font-size: 1.28rem;
+            color: #1a2c44;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .modal-content {
+            font-size: 1.08rem;
+            color: #223;
+            margin-bottom: 14px;
+        }
+        .erro-anexo {
+            color: #d32020;
+            text-align: left;
+            font-size: 0.99rem;
+            margin-bottom: 4px;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -112,13 +159,19 @@
         <form method="POST" enctype="multipart/form-data">
             <label for="texto">Digite sua denúncia:</label>
             <textarea name="texto" id="texto" required></textarea>
-            <label for="anexo" class="anexo-label">Adicionar imagem ou PDF (opcional):</label>
-            <input type="file" id="anexo" name="anexo" accept=".jpg,.jpeg,.png,.gif,.pdf">
+
+            <label for="anexo" style="margin-top:10px;display:block;font-weight:bold;">Anexar arquivo (opcional):</label>
+            <input type="file" name="anexo" id="anexo" class="input-anexo" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar">
+
+            {% if anexo_erro %}
+                <div class="erro-anexo">{{ anexo_erro }}</div>
+            {% endif %}
+
             <div class="terms">
                 <input type="checkbox" name="terms" id="terms">
                 <label for="terms">
                     Li e aceito os
-                    <a href="{{ url_for('termos') }}" target="_blank">termos e condições</a>
+                    <span onclick="abrirTermos()" style="color:#235cff; cursor:pointer; text-decoration:underline;">termos e condições</span>
                 </label>
             </div>
             <button type="submit">Enviar</button>
@@ -129,5 +182,35 @@
     <footer style="text-align:center; color:#888; margin-top:24px;">
         Canal de Denúncias | Biocamp
     </footer>
+
+    <!-- Modal dos termos -->
+    <div class="modal-bg" id="modal-termos">
+      <div class="modal">
+        <button class="modal-close" onclick="fecharModalTermos()">&times;</button>
+        <div class="modal-title">Termos e Condições</div>
+        <div class="modal-content" style="max-height:300px;overflow:auto;">
+          <b>Exemplo de Termos:</b>
+          <p>
+            Este canal é confidencial. O uso é restrito conforme previsto pela legislação vigente.<br>
+            A denúncia será analisada pelo RH. Você poderá acompanhar o andamento do seu protocolo.<br>
+            Não será possível excluir ou editar a denúncia e anexos após o envio.
+          </p>
+        </div>
+      </div>
+    </div>
+    <script>
+    function abrirTermos() {
+        document.getElementById('modal-termos').style.display = 'flex';
+    }
+    function fecharModalTermos() {
+        document.getElementById('modal-termos').style.display = 'none';
+    }
+    // Fecha ao clicar fora do modal
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.getElementById('modal-termos').onclick = e=>{
+        if(e.target===e.currentTarget) fecharModalTermos();
+      }
+    });
+    </script>
 </body>
 </html>

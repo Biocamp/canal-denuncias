@@ -68,6 +68,11 @@
             margin-top: 24px;
             margin-bottom: 16px;
             border-radius: 7px;
+            cursor: pointer;
+            transition: box-shadow .2s;
+        }
+        .info-status:hover {
+            box-shadow: 0 0 10px #6ea8fe30;
         }
         .btns-center {
             text-align: center;
@@ -91,6 +96,49 @@
         .anexo-link:hover {
             background: #32995f;
         }
+        /* Modal */
+        .modal-bg {
+            position: fixed;
+            z-index: 99;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: #1b233944;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 32px 28px 22px 28px;
+            max-width: 400px;
+            width: 94vw;
+            box-shadow: 0 6px 32px #0003;
+            position: relative;
+            animation: pop .18s;
+        }
+        @keyframes pop { from { transform: scale(.88); opacity:0 } to { transform: scale(1); opacity:1 } }
+        .modal-close {
+            position: absolute;
+            top: 8px; right: 14px;
+            background: transparent;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: #555;
+        }
+        .modal-title {
+            font-size: 1.28rem;
+            color: #1a2c44;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .modal-content {
+            font-size: 1.08rem;
+            color: #223;
+            margin-bottom: 14px;
+        }
     </style>
 </head>
 <body>
@@ -112,17 +160,45 @@
             </div>
         </form>
         {% if denuncia %}
-        <div class="info-status">
+        <!-- Cartão resumo que vira modal -->
+        <div class="info-status" onclick="abrirDetalhes()">
             <b>Protocolo:</b> {{ denuncia.protocolo }}<br>
             <b>Status:</b> {{ denuncia.status }}<br>
-            {% if denuncia.observacao %}
-                <b>Observações:</b> {{ denuncia.observacao }}<br>
-            {% endif %}
             <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}<br>
-            {% if denuncia.anexo %}
-                <a href="{{ url_for('uploaded_file', filename=denuncia.anexo) }}" class="anexo-link" target="_blank">Baixar anexo</a>
-            {% endif %}
+            <span style="color:#666;font-size:.97em;">Clique para ver detalhes</span>
         </div>
+        <!-- Modal de detalhes da denúncia -->
+        <div class="modal-bg" id="modal-detalhes">
+          <div class="modal">
+            <button class="modal-close" onclick="fecharModal()">&times;</button>
+            <div class="modal-title">Detalhes da denúncia</div>
+            <div class="modal-content">
+                <b>Protocolo:</b> {{ denuncia.protocolo }}<br>
+                <b>Status:</b> {{ denuncia.status }}<br>
+                {% if denuncia.observacao %}
+                  <b>Observações:</b> {{ denuncia.observacao }}<br>
+                {% endif %}
+                <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}<br>
+                {% if denuncia.anexo %}
+                  <a href="{{ url_for('uploaded_file', filename=denuncia.anexo) }}" class="anexo-link" target="_blank">Baixar anexo</a>
+                {% endif %}
+            </div>
+          </div>
+        </div>
+        <script>
+        function abrirDetalhes() {
+            document.getElementById('modal-detalhes').style.display = 'flex';
+        }
+        function fecharModal() {
+            document.getElementById('modal-detalhes').style.display = 'none';
+        }
+        // Fecha ao clicar fora do modal
+        document.addEventListener('DOMContentLoaded', ()=>{
+          document.getElementById('modal-detalhes').onclick = e=>{
+            if(e.target===e.currentTarget) fecharModal();
+          }
+        });
+        </script>
         {% endif %}
     </div>
     <div class="footer">Canal de Denúncias | Biocamp</div>
