@@ -16,6 +16,7 @@
             box-shadow: 0 2px 8px #38a06732;
             border-radius: 9px;
             padding: 8px 19px;
+            position: relative;
         }
         .btn-success:hover {
             background: linear-gradient(90deg,#38a067 80%,#49b87a 100%) !important;
@@ -38,6 +39,18 @@
             border-radius: 14px;
             overflow: hidden;
             box-shadow: 0 2px 14px #6ea8fe13;
+        }
+        .badge-msg {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            padding: 3px 8px;
+            font-size: .93em;
+            background: #d32f2f;
+            color: #fff;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px #d32f2f2a;
         }
         @media (max-width: 800px) {
             .card { padding: 1.2rem !important; }
@@ -71,9 +84,14 @@
                                     <td>{{ d.protocolo }}</td>
                                     <td>{{ d.status }}</td>
                                     <td>{{ d.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
-                                    <td>
-                                        <a href="{{ url_for('admin_denuncia', protocolo=d.protocolo) }}" class="btn btn-success btn-sm">
+                                    <td style="position:relative;">
+                                        <a href="{{ url_for('admin_denuncia', protocolo=d.protocolo) }}" class="btn btn-success btn-sm position-relative">
                                             Abrir Chat
+                                            {% if unread_counts[d.protocolo] > 0 %}
+                                                <span class="badge-msg">
+                                                    {{ unread_counts[d.protocolo] }}
+                                                </span>
+                                            {% endif %}
                                         </a>
                                     </td>
                                 </tr>
