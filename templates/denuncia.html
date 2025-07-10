@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Canal de Denúncias</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
             background: #f5f7fa;
             font-family: Arial, sans-serif;
         }
         .card-custom {
-            max-width: 480px;
+            max-width: 500px;
             margin: 60px auto;
-            padding: 40px 30px;
+            padding: 40px 32px 32px 32px;
             background: #fff;
-            border-radius: 12px;
+            border-radius: 14px;
             box-shadow: 0 2px 16px #0001;
             position: relative;
         }
         h2 {
             text-align: center;
-            color: #203050;
+            color: #1a355e;
+            font-weight: 600;
         }
         textarea {
             width: 100%;
             min-height: 120px;
-            border-radius: 6px;
+            border-radius: 8px;
             border: 1px solid #dbe2ee;
             padding: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             resize: vertical;
             font-size: 1rem;
         }
@@ -38,11 +40,12 @@
             font-weight: bold;
             padding: 14px;
             border: none;
-            border-radius: 7px;
-            font-size: 1.15rem;
+            border-radius: 8px;
+            font-size: 1.13rem;
             margin-top: 10px;
             cursor: pointer;
             transition: background .2s;
+            box-shadow: 0 2px 6px #6ea8fe33;
         }
         button:hover, .btn-custom:hover {
             background: #4186ec;
@@ -52,26 +55,27 @@
             font-size: 1rem;
         }
         .terms {
-            margin-top: 10px;
+            margin-top: 12px;
             margin-bottom: 10px;
+            font-size: 0.97rem;
         }
         .btn-acompanhar {
             display: block;
             background: #49b87a;
             color: #fff !important;
-            padding: 16px 22px;
-            border-radius: 7px;
+            padding: 15px 22px;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 1.15rem;
-            margin: 22px auto 0 auto;
+            font-size: 1.08rem;
+            margin: 20px auto 0 auto;
             transition: background .2s;
-            width: 90%;
+            width: 93%;
             text-align: center;
+            box-shadow: 0 2px 6px #49b87a2c;
         }
         .btn-acompanhar:hover {
             background: #32995f;
-            color: #eaf2ff !important;
         }
         .msg-flash {
             text-align: center;
@@ -89,6 +93,7 @@
             text-align: center;
             color: #29599a;
             text-decoration: underline;
+            font-size: 1rem;
         }
         /* Modal styles */
         .modal-bg {
@@ -115,13 +120,13 @@
         }
         .modal-title {
             text-align: center;
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             font-weight: bold;
             color: #26354a;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .modal-content {
-            font-size: 1.09rem;
+            font-size: 1.04rem;
             color: #273a47;
             margin-bottom: 18px;
             max-height: 350px;
@@ -140,6 +145,10 @@
             0% { transform: scale(.93);}
             100% { transform: scale(1);}
         }
+        @media (max-width: 600px) {
+            .card-custom { padding: 22px 7vw 26px 7vw; }
+            .btn-acompanhar { width: 100%; font-size: 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -153,7 +162,7 @@
             {% endif %}
         {% endwith %}
         <form method="POST" enctype="multipart/form-data">
-            <label for="texto">Digite sua denúncia:</label>
+            <label for="texto"><b>Digite sua denúncia:</b></label>
             <textarea name="texto" id="texto" required></textarea>
             <div style="margin-bottom:15px;margin-top:10px;">
                 <label for="anexo"><b>Anexo:</b></label>
@@ -177,6 +186,7 @@
             <span class="modal-close" onclick="fecharTermos()">&times;</span>
             <div class="modal-title">Termos e Condições</div>
             <div class="modal-content">
+                <!-- Conteúdo do termo igual já enviado -->
                 <h3 style="margin-bottom:10px;">Termo de Ciência e Aceite – Canal de Denúncias</h3>
                 <p>
                   A Biocamp Laboratórios Ltda. mantém ativo um Canal de Denúncias 24 horas, disponível para colaboradores.<br>
@@ -214,7 +224,6 @@
         function fecharTermos() {
             document.getElementById('modal-termos').classList.remove('active');
         }
-        // Fechar com ESC ou clique fora
         document.addEventListener('keydown', function(e){
             if (e.key === "Escape") fecharTermos();
         });
