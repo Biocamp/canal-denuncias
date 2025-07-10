@@ -1,10 +1,12 @@
 import os
+import uuid
 from flask import Flask, redirect, url_for, session, request, render_template, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail, Message as MailMessage
+from flask_mail import Mail, Message
 from functools import wraps
 from threading import Thread
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.utils import secure_filename
 import secrets
 
 app = Flask(__name__)
@@ -14,9 +16,11 @@ app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'}
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # --- Configuração Flask-Mail via ENV ---
@@ -38,16 +42,15 @@ class Denuncia(db.Model):
     protocolo = db.Column(db.String(20), unique=True, nullable=False)
     status = db.Column(db.String(30), default='Recebida')
     observacao = db.Column(db.Text, nullable=True)
-    anexo = db.Column(db.String(255), nullable=True)  # Para o upload de arquivo
+    mensagens = db.relationship('MensagemChat', backref='denuncia', lazy=True)
 
-# NOVO: tabela de mensagens
-class Mensagem(db.Model):
+class MensagemChat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     denuncia_id = db.Column(db.Integer, db.ForeignKey('denuncia.id'), nullable=False)
-    texto = db.Column(db.Text, nullable=False)
-    autor = db.Column(db.String(10))  # 'Usuário' ou 'RH'
+    autor = db.Column(db.String(30), nullable=False)  # "Usuário" ou "RH"
+    texto = db.Column(db.Text, nullable=True)
     data_hora = db.Column(db.DateTime, server_default=db.func.now())
-    denuncia = db.relationship('Denuncia', backref=db.backref('mensagens', lazy=True, order_by="Mensagem.data_hora"))
+    anexo = db.Column(db.String(120), nullable=True)  # nome do arquivo salvo
 
 with app.app_context():
     db.create_all()
@@ -70,7 +73,7 @@ def notify_rh(texto_denuncia, protocolo):
     rh_email = os.environ.get('RH_EMAIL')
     if not rh_email:
         return
-    msg = MailMessage(
+    msg = Message(
         subject='Nova denúncia recebida',
         sender=app.config['MAIL_USERNAME'],
         recipients=[rh_email],
@@ -88,6 +91,10 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# --- Funções auxiliares para arquivos ---
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- Rotas ---
 @app.route('/')
@@ -111,36 +118,43 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
 @app.route('/denuncia', methods=['GET', 'POST'])
 @login_required
 def denuncia():
     if request.method == 'POST':
+        # validação do checkbox
         if not request.form.get('terms'):
             flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
             return redirect(url_for('denuncia'))
 
         texto = request.form['texto']
-        protocolo = secrets.token_hex(6).upper()
-
-        filename = None
         file = request.files.get('anexo')
-        if file and file.filename:
-            filename = f"{protocolo}_{file.filename}"
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        anexo_nome = None
 
+        if file and file.filename and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            anexo_nome = f"{uuid.uuid4().hex}.{ext}"
+            file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
+
+        protocolo = secrets.token_hex(6).upper()
         nova_denuncia = Denuncia(
             texto=texto,
             protocolo=protocolo,
             status='Recebida',
-            observacao=None,
-            anexo=filename
+            observacao=None
         )
         db.session.add(nova_denuncia)
         db.session.commit()
+        # Se houver anexo na denúncia, salva como mensagem de chat inicial
+        if anexo_nome:
+            msg = MensagemChat(
+                denuncia_id=nova_denuncia.id,
+                autor="Usuário",
+                texto="Anexo inicial da denúncia.",
+                anexo=anexo_nome
+            )
+            db.session.add(msg)
+            db.session.commit()
         notify_rh(texto, protocolo)
         flash(f'Denúncia enviada com sucesso! Salve seu protocolo: {protocolo}', 'success')
         return redirect(url_for('denuncia'))
@@ -165,31 +179,52 @@ def admin():
 def consulta():
     denuncia = None
     mensagens = []
-    protocolo = ""
+    protocolo = None
     if request.method == 'POST':
         protocolo = request.form.get('protocolo', '').strip().upper()
-        if protocolo:
-            denuncia = Denuncia.query.filter_by(protocolo=protocolo).first()
-            if not denuncia:
-                flash("Nenhuma denúncia encontrada para esse protocolo.", "warning")
-            else:
-                mensagens = Mensagem.query.filter_by(denuncia_id=denuncia.id).order_by(Mensagem.data_hora).all()
-    return render_template('consulta.html', denuncia=denuncia, mensagens=mensagens, protocolo=protocolo)
+    elif request.method == 'GET' and 'protocolo' in request.args:
+        protocolo = request.args.get('protocolo', '').strip().upper()
+
+    if protocolo:
+        denuncia = Denuncia.query.filter_by(protocolo=protocolo).first()
+        if not denuncia:
+            flash("Nenhuma denúncia encontrada para esse protocolo.", "warning")
+        else:
+            mensagens = MensagemChat.query.filter_by(denuncia_id=denuncia.id).order_by(MensagemChat.data_hora.asc()).all()
+    return render_template('consulta.html', denuncia=denuncia, mensagens=mensagens)
 
 @app.route('/chat/<protocolo>', methods=['POST'])
 def chat(protocolo):
-    denuncia = Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
+    denuncia = Denuncia.query.filter_by(protocolo=protocolo).first()
+    if not denuncia:
+        flash("Protocolo não encontrado.", "danger")
+        return redirect(url_for('consulta'))
+
     texto = request.form.get('mensagem', '').strip()
-    if texto:
-        mensagem = Mensagem(
+    file = request.files.get('anexo')
+    anexo_nome = None
+
+    if file and file.filename and allowed_file(file.filename):
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        anexo_nome = f"{uuid.uuid4().hex}.{ext}"
+        file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
+
+    if texto or anexo_nome:
+        msg = MensagemChat(
             denuncia_id=denuncia.id,
-            texto=texto,
-            autor='Usuário'
+            autor="Usuário",
+            texto=texto if texto else None,
+            anexo=anexo_nome
         )
-        db.session.add(mensagem)
+        db.session.add(msg)
         db.session.commit()
-    # Redireciona para consulta já preenchida com o protocolo
-    return redirect(url_for('consulta') + f"#chat-{protocolo}")
+
+    # Fixar protocolo para manter o chat aberto após envio
+    return redirect(url_for('consulta', protocolo=protocolo))
+
+@app.route('/chat_arquivo/<filename>')
+def chat_arquivo(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 if __name__ == "__main__":
     app.run(debug=True)
