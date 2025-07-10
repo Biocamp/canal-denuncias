@@ -10,90 +10,100 @@
             font-family: Arial, sans-serif;
         }
         .card-custom {
-            max-width: 500px;
-            margin: 60px auto;
-            padding: 40px 32px 32px 32px;
+            max-width: 520px;
+            margin: 64px auto;
+            padding: 44px 38px 32px 38px;
             background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 2px 16px #0001;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px #00306118;
             position: relative;
         }
         h2 {
             text-align: center;
             color: #1a355e;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1.7rem;
+            margin-bottom: 20px;
         }
         textarea {
             width: 100%;
             min-height: 120px;
-            border-radius: 8px;
-            border: 1px solid #dbe2ee;
-            padding: 12px;
-            margin-bottom: 22px;
+            border-radius: 10px;
+            border: 1.2px solid #dbe2ee;
+            padding: 14px 13px;
+            margin-bottom: 26px;
             resize: vertical;
-            font-size: 1rem;
+            font-size: 1.07rem;
+            box-shadow: 0 1.5px 7px #eaf3ff18;
+            transition: border .18s;
+        }
+        textarea:focus {
+            border-color: #6ea8fe;
         }
         button, .btn-custom {
             width: 100%;
-            background: #6ea8fe;
+            background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%);
             color: #fff;
-            font-weight: bold;
-            padding: 14px;
+            font-weight: 700;
+            padding: 15px;
             border: none;
-            border-radius: 8px;
-            font-size: 1.13rem;
+            border-radius: 12px;
+            font-size: 1.15rem;
             margin-top: 10px;
             cursor: pointer;
-            transition: background .2s;
-            box-shadow: 0 2px 6px #6ea8fe33;
+            box-shadow: 0 2px 10px #6ea8fe29;
+            transition: background .19s, box-shadow .19s;
         }
         button:hover, .btn-custom:hover {
-            background: #4186ec;
+            background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
+            box-shadow: 0 4px 22px #6ea8fe33;
         }
         label {
             margin-left: 3px;
             font-size: 1rem;
         }
         .terms {
-            margin-top: 12px;
-            margin-bottom: 10px;
-            font-size: 0.97rem;
+            margin-top: 16px;
+            margin-bottom: 12px;
+            font-size: 1.01rem;
         }
         .btn-acompanhar {
             display: block;
-            background: #49b87a;
+            background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff !important;
-            padding: 15px 22px;
-            border-radius: 8px;
+            padding: 16px 22px;
+            border-radius: 11px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 1.08rem;
-            margin: 20px auto 0 auto;
-            transition: background .2s;
+            font-size: 1.14rem;
+            margin: 23px auto 0 auto;
+            box-shadow: 0 2px 10px #49b87a22;
             width: 93%;
             text-align: center;
-            box-shadow: 0 2px 6px #49b87a2c;
+            transition: background .18s, box-shadow .18s;
         }
         .btn-acompanhar:hover {
-            background: #32995f;
+            background: linear-gradient(90deg,#38a067 80%,#49b87a 100%);
+            color: #eaf2ff !important;
+            box-shadow: 0 4px 24px #49b87a34;
         }
         .msg-flash {
             text-align: center;
             margin: 18px 0 6px 0;
             padding: 10px;
-            border-radius: 6px;
+            border-radius: 8px;
             background: #e6f1ff;
             color: #29599a;
             border: 1px solid #b1d0f7;
         }
         .sair-link {
             display: block;
-            margin: 24px auto 0 auto;
+            margin: 28px auto 0 auto;
             width: fit-content;
             text-align: center;
-            color: #29599a;
+            color: #3770a7;
             text-decoration: underline;
-            font-size: 1rem;
+            font-size: 1.10rem;
         }
         /* Modal styles */
         .modal-bg {
@@ -110,11 +120,11 @@
         }
         .modal-box {
             background: #fff;
-            border-radius: 14px;
+            border-radius: 15px;
             max-width: 520px;
             width: 95vw;
             box-shadow: 0 2px 24px #0003;
-            padding: 32px 26px 28px 26px;
+            padding: 36px 28px 30px 28px;
             position: relative;
             animation: pop .18s cubic-bezier(.47,1.64,.41,.8);
         }
@@ -126,9 +136,9 @@
             margin-bottom: 12px;
         }
         .modal-content {
-            font-size: 1.04rem;
+            font-size: 1.05rem;
             color: #273a47;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             max-height: 350px;
             overflow-y: auto;
         }
@@ -136,7 +146,7 @@
             position: absolute;
             right: 18px;
             top: 12px;
-            font-size: 1.7rem;
+            font-size: 1.8rem;
             color: #444b;
             cursor: pointer;
         }
@@ -146,7 +156,7 @@
             100% { transform: scale(1);}
         }
         @media (max-width: 600px) {
-            .card-custom { padding: 22px 7vw 26px 7vw; }
+            .card-custom { padding: 14px 5vw 16px 5vw; }
             .btn-acompanhar { width: 100%; font-size: 1rem; }
         }
     </style>
@@ -164,7 +174,7 @@
         <form method="POST" enctype="multipart/form-data">
             <label for="texto"><b>Digite sua denúncia:</b></label>
             <textarea name="texto" id="texto" required></textarea>
-            <div style="margin-bottom:15px;margin-top:10px;">
+            <div style="margin-bottom:20px;margin-top:10px;">
                 <label for="anexo"><b>Anexo:</b></label>
                 <input type="file" name="anexo" id="anexo" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
             </div>
@@ -186,7 +196,7 @@
             <span class="modal-close" onclick="fecharTermos()">&times;</span>
             <div class="modal-title">Termos e Condições</div>
             <div class="modal-content">
-                <!-- Conteúdo do termo igual já enviado -->
+                <!-- Conteúdo igual antes -->
                 <h3 style="margin-bottom:10px;">Termo de Ciência e Aceite – Canal de Denúncias</h3>
                 <p>
                   A Biocamp Laboratórios Ltda. mantém ativo um Canal de Denúncias 24 horas, disponível para colaboradores.<br>

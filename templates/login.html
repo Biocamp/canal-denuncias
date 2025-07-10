@@ -4,62 +4,147 @@
     <meta charset="UTF-8">
     <title>Login - Canal de Denúncias</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background: #f5f7fa;
             font-family: Arial, sans-serif;
         }
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-login {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px #00306118;
+            max-width: 420px;
+            width: 98vw;
+            padding: 48px 38px 40px 38px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         .marca-agua {
             position: absolute;
-            top: 50%;
+            top: 54%;
             left: 50%;
-            width: 80%;
-            max-width: 260px;
+            width: 86%;
+            max-width: 240px;
             opacity: 0.07;
             transform: translate(-50%, -50%);
             pointer-events: none;
-            z-index: 1;
             user-select: none;
+            z-index: 1;
         }
-        .card-custom {
-            position: relative;
-            overflow: hidden;
+        h2 {
+            color: #1a355e;
+            font-weight: 700;
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: .01em;
+            z-index: 2;
+        }
+        .subtitle {
+            color: #79839e;
+            text-align: center;
+            font-size: 1.05rem;
+            margin-bottom: 24px;
+            z-index: 2;
+        }
+        .alert-danger {
+            color: #8f162b;
+            background: #f8e6ea;
+            border: 1px solid #eea5b6;
+            padding: 11px 15px;
+            border-radius: 9px;
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 1.01rem;
+            z-index: 2;
+        }
+        form {
+            width: 100%;
+            z-index: 2;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            font-size: 1rem;
+            margin-bottom: 6px;
+            color: #1a355e;
+            font-weight: 500;
+        }
+        input[type="email"] {
+            width: 100%;
+            border-radius: 10px;
+            border: 1.2px solid #dbe2ee;
+            padding: 13px 12px;
+            font-size: 1.05rem;
+            box-shadow: 0 1.5px 7px #eaf3ff18;
+            transition: border .17s;
+            outline: none;
+        }
+        input[type="email"]:focus {
+            border-color: #6ea8fe;
+        }
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%);
+            color: #fff;
+            font-weight: 700;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.13rem;
+            box-shadow: 0 2px 10px #6ea8fe26;
+            cursor: pointer;
+            transition: background .17s, box-shadow .18s;
+            margin-top: 6px;
+        }
+        .btn-login:hover {
+            background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
+            box-shadow: 0 4px 18px #6ea8fe34;
         }
         .rodape {
-            font-size: 0.93rem;
+            font-size: 0.99rem;
             color: #7b8493;
             text-align: center;
-            margin-top: 18px;
+            margin-top: 28px;
+        }
+        @media (max-width: 600px) {
+            .card-login {
+                padding: 22px 5vw 20px 5vw;
+            }
+            .rodape { font-size: .92rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container d-flex vh-100">
-        <div class="row justify-content-center align-self-center w-100">
-            <div class="col-md-5 col-lg-4 mx-auto">
-                <div class="card card-custom shadow p-4">
-                    <img src="{{ url_for('static', filename='logo-biocamp.png') }}" alt="logo biocamp" class="marca-agua">
-                    <h2 class="mb-3 text-center" style="color:#1a355e;font-weight:600;">Canal de Denúncias</h2>
-                    <p class="text-center mb-3 text-muted">Digite seu e-mail autorizado para acessar.</p>
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            <div class="alert alert-danger" role="alert">
-                                {{ messages[0] }}
-                            </div>
-                        {% endif %}
-                    {% endwith %}
-                    <form method="POST" action="{{ url_for('login') }}">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-mail autorizado</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Entrar</button>
-                    </form>
+    <div class="login-container">
+        <div class="card-login">
+            <!-- Marca d'água -->
+            <img src="{{ url_for('static', filename='logo-biocamp.png') }}" alt="logo biocamp" class="marca-agua">
+            <h2>Canal de Denúncias</h2>
+            <div class="subtitle">Digite seu e-mail autorizado para acessar.</div>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert-danger">{{ messages[0] }}</div>
+                {% endif %}
+            {% endwith %}
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label for="email">E-mail autorizado</label>
+                    <input type="email" id="email" name="email" required autocomplete="off">
                 </div>
-                <div class="rodape">Canal de Denúncias | Biocamp</div>
-            </div>
+                <button type="submit" class="btn-login">Entrar</button>
+            </form>
         </div>
     </div>
+    <div class="rodape">Canal de Denúncias | Biocamp</div>
 </body>
 </html>
