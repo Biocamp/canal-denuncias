@@ -28,10 +28,9 @@
             color: #222;
             margin-bottom: 0;
         }
-        input[type="text"] {
+        input[type="text"], input[type="email"] {
             width: 100%;
             padding: 13px;
-            margin: 10px 0 20px 0;
             border-radius: 10px;
             border: 1.2px solid #dbe2ee;
             font-size: 1rem;
@@ -39,7 +38,7 @@
             transition: border .18s;
             outline: none;
         }
-        input[type="text"]:focus {
+        input[type="text"]:focus, input[type="email"]:focus {
             border-color: #6ea8fe;
         }
         .btn-acompanhar {
@@ -165,7 +164,7 @@
         }
         .chat-form {
             display: flex;
-            gap: 12px;
+            gap: 11px;
             margin-top: 14px;
             align-items: center;
         }
@@ -182,22 +181,64 @@
         .chat-form input[type="text"]:focus {
             border-color: #6ea8fe;
         }
-        .chat-form input[type="file"] {
+        /* Custom file input style */
+        .input-file-wrap {
+            position: relative;
             flex: 1.1;
-            font-size: 0.97rem;
+            min-width: 130px;
+        }
+        .input-file {
+            opacity: 0;
+            width: 100%;
+            height: 41px;
+            position: absolute;
+            left: 0; top: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .label-file {
+            display: block;
+            width: 100%;
+            background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%);
+            color: #426187;
+            border-radius: 9px;
+            padding: 10px 8px 10px 14px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.03rem;
+            box-shadow: 0 2px 8px #6ea8fe0a;
+            border: 1px solid #bed8ef;
+            cursor: pointer;
+            transition: background .17s, box-shadow .19s;
+            position: relative;
+            z-index: 1;
+        }
+        .label-file:hover {
+            background: #f0f8ff;
+            box-shadow: 0 2px 14px #6ea8fe1b;
+        }
+        .filename {
+            font-size: .93rem;
+            color: #3770a7;
+            margin-left: 8px;
+            word-break: break-all;
+            margin-top: 6px;
         }
         .chat-form button {
             background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff;
             border: none;
             border-radius: 9px;
-            padding: 12px 24px;
+            padding: 13px 27px;
             font-weight: 700;
-            font-size: 1.07rem;
+            font-size: 1.09rem;
             cursor: pointer;
             transition: background .2s, box-shadow .2s;
             box-shadow: 0 2px 8px #38a06732;
-            min-width: 92px;
+            min-width: 96px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .chat-form button:hover {
             background: linear-gradient(90deg,#38a067 85%,#49b87a 100%);
@@ -206,6 +247,7 @@
         @media (max-width: 700px) {
             .card-custom { padding: 14px 5vw 16px 5vw; }
             h2 { font-size: 1.19rem; }
+            .chat-form button { min-width: 72px; padding: 11px 8px;}
         }
     </style>
 </head>
@@ -258,15 +300,33 @@
             {% endif %}
             <div class="clearfix"></div>
         </div>
-        <form method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
-              class="chat-form" autocomplete="off" enctype="multipart/form-data">
+        <!-- CHAT FORM MODERNO -->
+        <form method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" class="chat-form" autocomplete="off" enctype="multipart/form-data" id="chatForm">
             <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
             <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
-            <input type="file" name="anexo" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+            <div class="input-file-wrap">
+                <label for="file-upload-user" class="label-file">Selecionar arquivo</label>
+                <input type="file" id="file-upload-user" name="anexo" class="input-file"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                    onchange="showFilenameUser()">
+                <div class="filename" id="filename-user"></div>
+            </div>
             <button type="submit">Enviar</button>
         </form>
         {% endif %}
     </div>
     <div class="footer">Canal de Denúncias | Biocamp</div>
+    <script>
+        // Mostra nome do arquivo
+        function showFilenameUser() {
+            const input = document.getElementById('file-upload-user');
+            const label = document.getElementById('filename-user');
+            if (input.files.length) {
+                label.textContent = input.files[0].name;
+            } else {
+                label.textContent = '';
+            }
+        }
+    </script>
 </body>
 </html>

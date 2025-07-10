@@ -88,8 +88,8 @@
         .clearfix::after { content: ""; display: table; clear: both; }
         .chat-form {
             display: flex;
-            gap: 12px;
-            margin-top: 12px;
+            gap: 11px;
+            margin-top: 14px;
             align-items: center;
         }
         .chat-form input[type="text"] {
@@ -105,22 +105,64 @@
         .chat-form input[type="text"]:focus {
             border-color: #6ea8fe;
         }
-        .chat-form input[type="file"] {
+        /* Custom file input style */
+        .input-file-wrap {
+            position: relative;
             flex: 1.1;
-            font-size: 0.97rem;
+            min-width: 130px;
+        }
+        .input-file {
+            opacity: 0;
+            width: 100%;
+            height: 41px;
+            position: absolute;
+            left: 0; top: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .label-file {
+            display: block;
+            width: 100%;
+            background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%);
+            color: #426187;
+            border-radius: 9px;
+            padding: 10px 8px 10px 14px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.03rem;
+            box-shadow: 0 2px 8px #6ea8fe0a;
+            border: 1px solid #bed8ef;
+            cursor: pointer;
+            transition: background .17s, box-shadow .19s;
+            position: relative;
+            z-index: 1;
+        }
+        .label-file:hover {
+            background: #f0f8ff;
+            box-shadow: 0 2px 14px #6ea8fe1b;
+        }
+        .filename {
+            font-size: .93rem;
+            color: #3770a7;
+            margin-left: 8px;
+            word-break: break-all;
+            margin-top: 6px;
         }
         .chat-form button {
             background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff;
             border: none;
             border-radius: 9px;
-            padding: 12px 26px;
+            padding: 13px 27px;
             font-weight: 700;
             font-size: 1.09rem;
             cursor: pointer;
             transition: background .2s, box-shadow .2s;
             box-shadow: 0 2px 8px #38a06732;
-            min-width: 92px;
+            min-width: 96px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .chat-form button:hover {
             background: linear-gradient(90deg,#38a067 85%,#49b87a 100%);
@@ -128,15 +170,16 @@
         }
         .voltar-link {
             display: block;
-            margin: 32px auto 0 auto;
-            color: #3770a7;
+            margin: 28px auto 0 auto;
+            color: #245;
             text-align: center;
+            font-size: 1.12rem;
             text-decoration: underline;
-            font-size: 1.11rem;
         }
         @media (max-width: 700px) {
-            .card { padding: 16px 4vw 24px 4vw; }
-            h3 { font-size: 1.24rem; }
+            .card { padding: 14px 5vw 16px 5vw; }
+            h3 { font-size: 1.15rem; }
+            .chat-form button { min-width: 72px; padding: 11px 8px;}
         }
     </style>
 </head>
@@ -161,16 +204,35 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <div style="color:#aaa;text-align:center;">Nenhuma mensagem ainda.</div>
+                <div style="color:#888;text-align:center;">Nenhuma mensagem ainda.</div>
             {% endif %}
             <div class="clearfix"></div>
         </div>
-        <form method="post" enctype="multipart/form-data" class="chat-form">
+        <!-- CHAT FORM MODERNO -->
+        <form method="post" enctype="multipart/form-data" class="chat-form" id="chatFormRh">
             <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
-            <input type="file" name="anexo" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+            <div class="input-file-wrap">
+                <label for="file-upload-rh" class="label-file">Selecionar arquivo</label>
+                <input type="file" id="file-upload-rh" name="anexo" class="input-file"
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                       onchange="showFilenameRh()">
+                <div class="filename" id="filename-rh"></div>
+            </div>
             <button type="submit">Enviar</button>
         </form>
         <a href="{{ url_for('admin') }}" class="voltar-link">Voltar para painel</a>
     </div>
+    <script>
+        // Mostra nome do arquivo
+        function showFilenameRh() {
+            const input = document.getElementById('file-upload-rh');
+            const label = document.getElementById('filename-rh');
+            if (input.files.length) {
+                label.textContent = input.files[0].name;
+            } else {
+                label.textContent = '';
+            }
+        }
+    </script>
 </body>
 </html>
