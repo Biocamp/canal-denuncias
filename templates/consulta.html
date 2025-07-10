@@ -76,6 +76,21 @@
         .footer {
             text-align:center; color:#888; margin-top:24px;
         }
+        .anexo-link {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 1rem;
+            background: #49b87a;
+            color: #fff !important;
+            padding: 6px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background .2s;
+        }
+        .anexo-link:hover {
+            background: #32995f;
+        }
     </style>
 </head>
 <body>
@@ -103,7 +118,10 @@
             {% if denuncia.observacao %}
                 <b>Observações:</b> {{ denuncia.observacao }}<br>
             {% endif %}
-            <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}
+            <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}<br>
+            {% if denuncia.anexo %}
+                <a href="{{ url_for('uploaded_file', filename=denuncia.anexo) }}" class="anexo-link" target="_blank">Baixar anexo</a>
+            {% endif %}
         </div>
         {% endif %}
     </div>

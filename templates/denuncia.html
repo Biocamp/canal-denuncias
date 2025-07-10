@@ -89,6 +89,14 @@
             color: #29599a;
             text-decoration: underline;
         }
+        .anexo-label {
+            display: block;
+            margin: 16px 0 4px 0;
+            font-size: 1rem;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -101,9 +109,11 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <label for="texto">Digite sua denúncia:</label>
             <textarea name="texto" id="texto" required></textarea>
+            <label for="anexo" class="anexo-label">Adicionar imagem ou PDF (opcional):</label>
+            <input type="file" id="anexo" name="anexo" accept=".jpg,.jpeg,.png,.gif,.pdf">
             <div class="terms">
                 <input type="checkbox" name="terms" id="terms">
                 <label for="terms">

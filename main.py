@@ -1,11 +1,15 @@
 import os
-from flask import Flask, redirect, url_for, session, request, render_template, flash
+from flask import Flask, redirect, url_for, session, request, render_template, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from functools import wraps
 from threading import Thread
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.utils import secure_filename
 import secrets
+
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
 app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
@@ -13,6 +17,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # --- Configuração Flask-Mail via ENV ---
 app.config.update(
@@ -33,6 +39,7 @@ class Denuncia(db.Model):
     protocolo = db.Column(db.String(20), unique=True, nullable=False)
     status = db.Column(db.String(30), default='Recebida')
     observacao = db.Column(db.Text, nullable=True)
+    anexo = db.Column(db.String(256), nullable=True)  # novo campo para anexo
 
 with app.app_context():
     db.create_all()
@@ -74,6 +81,15 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- Upload helper ---
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 # --- Rotas ---
 @app.route('/')
 @login_required
@@ -100,18 +116,26 @@ def logout():
 @login_required
 def denuncia():
     if request.method == 'POST':
-        # validação do checkbox
         if not request.form.get('terms'):
             flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
             return redirect(url_for('denuncia'))
 
         texto = request.form['texto']
         protocolo = secrets.token_hex(6).upper()
+        anexo = None
+
+        file = request.files.get('anexo')
+        if file and file.filename != '' and allowed_file(file.filename):
+            filename = protocolo + '_' + secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            anexo = filename
+
         nova_denuncia = Denuncia(
             texto=texto,
             protocolo=protocolo,
             status='Recebida',
-            observacao=None
+            observacao=None,
+            anexo=anexo
         )
         db.session.add(nova_denuncia)
         db.session.commit()
