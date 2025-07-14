@@ -94,20 +94,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# --- Decorator de segundo fator (apenas admin/rh) ---
-def admin_pin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        user = session.get('user')
-        pin_confirmado = session.get('admin_pin_ok')
-        rh_email = os.environ.get('RH_EMAIL', '').lower()
-        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
-        if user and user['email'].lower() in (rh_email, admin_email):
-            if not pin_confirmado:
-                return redirect(url_for('admin_verificacao'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -129,9 +115,8 @@ def login():
             or email == admin_email
         ):
             session['user'] = {'email': email}
-            session.pop('admin_pin_ok', None)  # Sempre limpa PIN ao novo login
             if email == rh_email or email == admin_email:
-                return redirect(url_for('admin_verificacao'))
+                return redirect(url_for('admin'))
             else:
                 return redirect(url_for('denuncia'))
         else:
@@ -141,7 +126,6 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user', None)
-    session.pop('admin_pin_ok', None)
     return redirect(url_for('login'))
 
 @app.route('/denuncia', methods=['GET', 'POST'])
@@ -242,30 +226,9 @@ def chat(protocolo):
         db.session.commit()
     return redirect(url_for('consulta', protocolo=protocolo))
 
-# --- Segundo fator para admin ---
-@app.route('/admin_verificacao', methods=['GET', 'POST'])
-@login_required
-def admin_verificacao():
-    user = session.get('user')
-    rh_email = os.environ.get('RH_EMAIL', '').lower()
-    admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
-    if not user or user['email'].lower() not in (rh_email, admin_email):
-        flash('Acesso restrito.', 'danger')
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        pin = request.form.get('pin')
-        pin_correto = os.environ.get('ADMIN_PIN', '123456')
-        if pin == pin_correto:
-            session['admin_pin_ok'] = True
-            return redirect(url_for('admin'))
-        else:
-            flash('PIN incorreto. Tente novamente.')
-    return render_template('admin_verificacao.html')
-
 # --- Painel ADMIN/RH ---
 @app.route('/admin', methods=['GET'])
 @login_required
-@admin_pin_required
 def admin():
     user = session.get('user')
     rh_email = os.environ.get('RH_EMAIL', '').lower()
@@ -296,7 +259,6 @@ def admin():
 
 @app.route('/admin/denuncia/<protocolo>', methods=['GET', 'POST'])
 @login_required
-@admin_pin_required
 def admin_denuncia(protocolo):
     user = session.get('user')
     rh_email = os.environ.get('RH_EMAIL', '').lower()
@@ -308,11 +270,21 @@ def admin_denuncia(protocolo):
     denuncia = Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
     mensagens = MensagemChat.query.filter_by(denuncia_id=denuncia.id).order_by(MensagemChat.data_hora.asc()).all()
 
-    # Quando o RH entra no chat, marca as mensagens de usuário como lidas
+    # Atualizar status da denúncia
+    status_msg = None
+    if request.method == 'POST' and 'atualizar_status' in request.form:
+        novo_status = request.form.get('novo_status')
+        if novo_status and novo_status in ['Recebida', 'Em Andamento', 'Finalizada']:
+            denuncia.status = novo_status
+            db.session.commit()
+            status_msg = f"Status atualizado para: {novo_status}"
+
+    # Marcar mensagens do usuário como lidas quando o RH entra no chat
     MensagemChat.query.filter_by(denuncia_id=denuncia.id, autor='Usuário', lida_pelo_rh=False).update({'lida_pelo_rh': True})
     db.session.commit()
 
-    if request.method == 'POST':
+    # Enviar mensagem do RH
+    if request.method == 'POST' and 'mensagem' in request.form and 'atualizar_status' not in request.form:
         texto = request.form.get('mensagem', '').strip()
         file = request.files.get('anexo')
         filename = None
@@ -326,13 +298,18 @@ def admin_denuncia(protocolo):
                 autor='RH',
                 texto=texto,
                 anexo=filename,
-                lida_pelo_rh=True  # mensagem do RH já é considerada lida pelo RH
+                lida_pelo_rh=True
             )
             db.session.add(nova_msg)
             db.session.commit()
         return redirect(url_for('admin_denuncia', protocolo=protocolo))
 
-    return render_template('admin_chat.html', denuncia=denuncia, mensagens=mensagens)
+    return render_template(
+        'admin_chat.html',
+        denuncia=denuncia,
+        mensagens=mensagens,
+        status_msg=status_msg
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
