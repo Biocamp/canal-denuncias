@@ -79,17 +79,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for d in denuncias %}
+                                {% for denuncia in denuncias %}
                                 <tr>
-                                    <td>{{ d.protocolo }}</td>
-                                    <td>{{ d.status }}</td>
-                                    <td>{{ d.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>{{ denuncia.protocolo }}</td>
+                                    <td>{{ denuncia.status }}</td>
+                                    <td>{{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
                                     <td style="position:relative;">
-                                        <a href="{{ url_for('admin_denuncia', protocolo=d.protocolo) }}" class="btn btn-success btn-sm position-relative">
+                                        <a href="{{ url_for('admin_denuncia', protocolo=denuncia.protocolo) }}" class="btn btn-success btn-sm position-relative">
                                             Abrir Chat
-                                            {% if unread_counts[d.protocolo] > 0 %}
+                                            {% if unread_counts[denuncia.protocolo] > 0 %}
                                                 <span class="badge-msg">
-                                                    {{ unread_counts[d.protocolo] }}
+                                                    {{ unread_counts[denuncia.protocolo] }}
                                                 </span>
                                             {% endif %}
                                         </a>
