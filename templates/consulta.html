@@ -11,6 +11,8 @@
         label { font-size: 1.07rem; color: #222; margin-bottom: 0; }
         input[type="text"], input[type="email"] { width: 100%; padding: 13px; border-radius: 10px; border: 1.2px solid #dbe2ee; font-size: 1rem; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .18s; outline: none; }
         input[type="text"]:focus, input[type="email"]:focus { border-color: #6ea8fe; }
+
+        /* Botão Consultar (verde) */
         .btn-consultar {
             background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff !important;
@@ -30,6 +32,7 @@
             background: linear-gradient(90deg,#38a067 80%,#49b87a 100%);
             box-shadow: 0 4px 20px #49b87a23;
         }
+        /* Botão Voltar (azul) */
         .btn-voltar {
             background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%);
             color: #fff !important;
@@ -49,6 +52,7 @@
             background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
             box-shadow: 0 4px 20px #6ea8fe24;
         }
+        /* Botão enviar do chat (sempre verde) */
         .btn-enviar {
             background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff;
@@ -84,12 +88,11 @@
         .chat-form { display: flex; gap: 10px; margin-top: 14px; align-items: center; }
         .chat-form input[type="text"] { flex: 2; min-width: 0; border-radius: 9px; border: 1.2px solid #dbe2ee; padding: 11px 12px; font-size: 1.02rem; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .17s; }
         .chat-form input[type="text"]:focus { border-color: #6ea8fe; }
-
         .input-file-wrap {
             position: relative;
-            flex: 0 1 75px;
-            min-width: 65px;
-            max-width: 85px;
+            flex: 1;
+            min-width: 85px;
+            max-width: 110px;
             display: flex;
             align-items: center;
         }
@@ -104,18 +107,18 @@
         }
         .label-file {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
             width: 100%;
-            max-width: 80px;
+            max-width: 105px;
             height: 41px;
             background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%);
             color: #426187;
             border-radius: 9px;
             text-align: center;
             font-weight: 700;
-            font-size: 0.86rem;
+            font-size: 0.96rem;
             box-shadow: 0 2px 8px #6ea8fe0a;
             border: 1px solid #bed8ef;
             cursor: pointer;
@@ -123,8 +126,8 @@
             position: relative;
             z-index: 1;
             white-space: normal;
-            line-height: 1.05;
-            padding: 2px 0 0 0;
+            padding: 0 4px;
+            line-height: 1.12;
         }
         .label-file:hover { background: #f0f8ff; box-shadow: 0 2px 14px #6ea8fe1b; }
         .filename { font-size: .93rem; color: #3770a7; margin-left: 8px; word-break: break-all; margin-top: 6px; }
@@ -133,8 +136,8 @@
             .card-custom { padding: 14px 5vw 16px 5vw; }
             h2 { font-size: 1.19rem; }
             .chat-form button { min-width: 72px; padding: 11px 8px;}
-            .input-file-wrap { min-width: 55px; max-width: 65px; }
-            .label-file { font-size: .78rem; max-width: 65px; }
+            .input-file-wrap { min-width: 70px; max-width: 80px; }
+            .label-file { font-size: .89rem; max-width: 80px; }
         }
     </style>
 </head>
@@ -152,8 +155,8 @@
             <label for="protocolo">Digite o número do seu protocolo:</label>
             <input type="text" name="protocolo" id="protocolo" value="{{ protocolo or '' }}" required>
             <div style="text-align: center; margin-top: 20px;">
-                <button type="submit" class="btn-consultar">Consultar</button>
                 <a href="{{ url_for('denuncia') }}" class="btn-voltar">Voltar</a>
+                <button type="submit" class="btn-consultar">Consultar</button>
             </div>
         </form>
         {% if denuncia %}
