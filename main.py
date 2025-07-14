@@ -196,7 +196,6 @@ def consulta():
             flash("Nenhuma denúncia encontrada para esse protocolo.", "warning")
         else:
             mensagens = MensagemChat.query.filter_by(denuncia_id=denuncia.id).order_by(MensagemChat.data_hora.asc()).all()
-            # Marca como lida pelo RH todas as mensagens "RH" ao serem vistas pelo usuário (opcional)
     return render_template('consulta.html', denuncia=denuncia, mensagens=mensagens, protocolo=protocolo)
 
 @app.route('/chat/<protocolo>', methods=['POST'])
@@ -247,13 +246,16 @@ def admin():
         MensagemChat.lida_pelo_rh == False
     ).group_by(MensagemChat.denuncia_id).subquery()
 
-    denuncias = db.session.query(
+    rows = db.session.query(
         Denuncia,
         subq.c.novas_msgs
     ).outerjoin(subq, Denuncia.id == subq.c.denuncia_id
     ).order_by(Denuncia.data_hora.desc()).all()
 
-    return render_template('admin.html', denuncias=denuncias)
+    denuncias = [row[0] for row in rows]
+    unread_counts = {row[0].protocolo: int(row[1] or 0) for row in rows}
+
+    return render_template('admin.html', denuncias=denuncias, unread_counts=unread_counts)
 
 @app.route('/admin/denuncia/<protocolo>', methods=['GET', 'POST'])
 @login_required
