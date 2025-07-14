@@ -12,7 +12,28 @@
         input[type="text"], input[type="email"] { width: 100%; padding: 13px; border-radius: 10px; border: 1.2px solid #dbe2ee; font-size: 1rem; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .18s; outline: none; }
         input[type="text"]:focus, input[type="email"]:focus { border-color: #6ea8fe; }
 
-        .btn-acompanhar {
+        /* BOTÃO CONSULTAR (AGORA VERDE) */
+        .btn-consultar {
+            background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
+            color: #fff !important;
+            font-weight: bold;
+            font-size: 1.10rem;
+            border: none;
+            border-radius: 10px;
+            padding: 13px 0;
+            min-width: 120px;
+            box-shadow: 0 2px 10px #38a0672b;
+            display: inline-block;
+            text-align: center;
+            margin-left: 12px;
+            transition: background .18s, box-shadow .18s;
+        }
+        .btn-consultar:hover {
+            background: linear-gradient(90deg,#38a067 80%,#49b87a 100%);
+            box-shadow: 0 4px 20px #49b87a23;
+        }
+        /* BOTÃO VOLTAR (AGORA AZUL) */
+        .btn-voltar {
             background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%);
             color: #fff !important;
             font-weight: bold;
@@ -20,38 +41,18 @@
             border: none;
             border-radius: 10px;
             padding: 13px 0;
-            margin: 0 0 0 12px; /* margem esquerda para separar quando estiver primeiro */
             min-width: 120px;
             box-shadow: 0 2px 10px #6ea8fe26;
             display: inline-block;
             text-align: center;
+            margin-right: 0;
             transition: background .18s, box-shadow .18s;
-        }
-        .btn-acompanhar:hover {
-            background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
-            color: #eaf2ff !important;
-            box-shadow: 0 4px 20px #6ea8fe24;
-        }
-        .btn-voltar {
-            background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
-            color: #fff !important;
-            border: none;
-            border-radius: 10px;
-            padding: 13px 0;
-            font-weight: bold;
-            font-size: 1.10rem;
-            min-width: 120px;
-            box-shadow: 0 2px 10px #38a0672b;
-            display: inline-block;
-            text-align: center;
-            transition: background .18s, box-shadow .18s;
-            margin: 0;
         }
         .btn-voltar:hover {
-            background: linear-gradient(90deg,#38a067 80%,#49b87a 100%);
-            box-shadow: 0 4px 20px #49a06723;
+            background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
+            box-shadow: 0 4px 20px #6ea8fe24;
         }
-        /* NOVO: botão verde para o chat */
+        /* Botão enviar do chat (sempre verde) */
         .btn-enviar {
             background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff;
@@ -60,21 +61,18 @@
             border: none;
             border-radius: 9px;
             padding: 13px 0;
-            min-width: 96px;
             box-shadow: 0 2px 8px #38a06732;
             transition: background .2s, box-shadow .2s;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            flex: 1;
             height: 41px;
         }
         .btn-enviar:hover {
             background: linear-gradient(90deg,#38a067 85%,#49b87a 100%);
             box-shadow: 0 4px 18px #3fa88930;
         }
-
         .msg-flash { text-align: center; margin: 18px 0 6px 0; padding: 10px; border-radius: 8px; background: #e6f1ff; color: #29599a; border: 1px solid #b1d0f7; }
         .info-status { background: #eaf2ff; border-left: 5px solid #6ea8fe; padding: 20px 22px 14px 22px; margin-top: 24px; margin-bottom: 18px; border-radius: 12px; font-size: 1.07rem; box-shadow: 0 1.5px 6px #6ea8fe13; }
         .footer { text-align:center; color:#888; margin-top:24px; }
@@ -86,48 +84,15 @@
         .chat-date { font-size: 0.93em; color: #86a; margin-left: 8px; opacity: .85; }
         .chat-anexo-link { display: inline-block; margin: 7px 0 0 0; font-size: 0.96em; color: #3fa889; text-decoration: underline; }
         .clearfix::after { content: ""; display: table; clear: both; }
-
-        .chat-form { display: flex; gap: 11px; margin-top: 14px; align-items: center; }
+        .chat-form { display: flex; gap: 10px; margin-top: 14px; align-items: center; }
         .chat-form input[type="text"] { flex: 2; min-width: 0; border-radius: 9px; border: 1.2px solid #dbe2ee; padding: 11px 12px; font-size: 1.02rem; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .17s; }
         .chat-form input[type="text"]:focus { border-color: #6ea8fe; }
-        .input-file-wrap { position: relative; flex: 1; }
-        .chat-form button { flex: 1; min-width: 96px; }
-
-        .input-file {
-            opacity: 0;
-            width: 100%;
-            height: 41px;
-            position: absolute;
-            left: 0; top: 0;
-            cursor: pointer;
-            z-index: 2;
-        }
-        .label-file {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 41px;
-            background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%);
-            color: #426187;
-            border-radius: 9px;
-            padding: 0 12px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 1.09rem;
-            box-shadow: 0 2px 8px #6ea8fe0a;
-            border: 1px solid #bed8ef;
-            cursor: pointer;
-            transition: background .17s, box-shadow .19s;
-            position: relative;
-            z-index: 1;
-        }
-        .label-file:hover {
-            background: #f0f8ff;
-            box-shadow: 0 2px 14px #6ea8fe1b;
-        }
+        .input-file-wrap { position: relative; flex: 1; min-width: 0; }
+        .input-file { opacity: 0; width: 100%; height: 41px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
+        .label-file { display: flex; align-items: center; justify-content: center; width: 100%; height: 41px; background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%); color: #426187; border-radius: 9px; font-weight: 700; font-size: 1.09rem; box-shadow: 0 2px 8px #6ea8fe0a; border: 1px solid #bed8ef; transition: background .17s, box-shadow .19s; cursor: pointer; position: relative; z-index: 1; }
+        .label-file:hover { background: #f0f8ff; box-shadow: 0 2px 14px #6ea8fe1b; }
         .filename { font-size: .93rem; color: #3770a7; margin-left: 8px; word-break: break-all; margin-top: 6px; }
-
+        .chat-form button { flex: 1; min-width: 0; }
         @media (max-width: 700px) {
             .card-custom { padding: 14px 5vw 16px 5vw; }
             h2 { font-size: 1.19rem; }
@@ -149,8 +114,8 @@
             <label for="protocolo">Digite o número do seu protocolo:</label>
             <input type="text" name="protocolo" id="protocolo" value="{{ protocolo or '' }}" required>
             <div style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="btn-consultar">Consultar</button>
                 <a href="{{ url_for('denuncia') }}" class="btn-voltar">Voltar</a>
-                <button type="submit" class="btn-acompanhar">Consultar</button>
             </div>
         </form>
         {% if denuncia %}
