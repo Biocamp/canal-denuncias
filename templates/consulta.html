@@ -65,8 +65,7 @@
             justify-content: center;
             cursor: pointer;
             height: 41px;
-            min-width: 90px;
-            max-width: 105px;
+            min-width: 96px;
         }
         .btn-enviar:hover {
             background: linear-gradient(90deg,#38a067 85%,#49b87a 100%);
@@ -87,12 +86,12 @@
         .chat-form input[type="text"] { flex: 2; min-width: 0; border-radius: 9px; border: 1.2px solid #dbe2ee; padding: 11px 12px; font-size: 1.02rem; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .17s; }
         .chat-form input[type="text"]:focus { border-color: #6ea8fe; }
 
-        /* Input-file-wrap agora menor */
+        /* Ajuste do botão "Selecionar arquivo" para evitar sobreposição */
         .input-file-wrap {
             position: relative;
-            flex: 0 1 120px;
-            min-width: 90px;
-            max-width: 120px;
+            flex: 0 1 100px;
+            min-width: 85px;
+            max-width: 110px;
             display: flex;
             align-items: center;
         }
@@ -110,7 +109,7 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 120px;
+            max-width: 110px;
             height: 41px;
             background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%);
             color: #426187;
@@ -118,7 +117,7 @@
             padding: 0 6px;
             text-align: center;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.97rem;
             box-shadow: 0 2px 8px #6ea8fe0a;
             border: 1px solid #bed8ef;
             cursor: pointer;
@@ -129,13 +128,13 @@
         }
         .label-file:hover { background: #f0f8ff; box-shadow: 0 2px 14px #6ea8fe1b; }
         .filename { font-size: .93rem; color: #3770a7; margin-left: 8px; word-break: break-all; margin-top: 6px; }
-        .chat-form button { flex: 0 1 105px; min-width: 80px; max-width: 110px; }
+        .chat-form button { flex: 1; min-width: 0; }
         @media (max-width: 700px) {
             .card-custom { padding: 14px 5vw 16px 5vw; }
             h2 { font-size: 1.19rem; }
-            .chat-form button { min-width: 70px; max-width: 100px; padding: 11px 8px;}
-            .input-file-wrap { min-width: 70px; max-width: 90px; }
-            .label-file { font-size: .93rem; max-width: 90px; }
+            .chat-form button { min-width: 72px; padding: 11px 8px;}
+            .input-file-wrap { min-width: 65px; max-width: 85px; }
+            .label-file { font-size: .91rem; max-width: 85px; }
         }
     </style>
 </head>
@@ -196,4 +195,20 @@
                 <input type="file" id="file-upload-user" name="anexo" class="input-file"
                     accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                     onchange="showFilenameUser()">
-                <div class="filename" i
+                <div class="filename" id="filename-user"></div>
+            </div>
+            <button type="submit" class="btn-enviar">Enviar</button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="footer">Canal de Denúncias | Biocamp</div>
+    <script>
+        // Mostra nome do arquivo
+        function showFilenameUser() {
+            const input = document.getElementById('file-upload-user');
+            const label = document.getElementById('filename-user');
+            label.textContent = input.files.length ? input.files[0].name : '';
+        }
+    </script>
+</body>
+</html>
