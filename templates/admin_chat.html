@@ -24,11 +24,54 @@
             letter-spacing: .01em;
         }
         .info-status {
-            margin-bottom: 22px;
+            margin-bottom: 10px;
             color: #1a355e;
             font-size: 1.07rem;
             padding: 0 0 12px 0;
             border-bottom: 1.5px solid #e4e9f2;
+        }
+        /* Bloco do select status */
+        .status-form-wrap {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        .status-form-wrap form {
+            display: flex;
+            align-items: center;
+        }
+        .status-form-wrap label {
+            font-weight: bold;
+            color: #2a3b4d;
+        }
+        .status-form-wrap select {
+            margin: 0 10px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 1.07rem;
+        }
+        .status-form-wrap button {
+            padding: 7px 18px;
+            border-radius: 6px;
+            background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            margin-left: 7px;
+            cursor: pointer;
+            font-size: 1.07rem;
+        }
+        .status-form-wrap button:hover {
+            background: linear-gradient(90deg,#38a067 90%,#49b87a 100%);
+        }
+        .status-sucesso {
+            background:#eafbe6;
+            color:#268a3f;
+            padding:8px 14px;
+            border-radius:6px; 
+            margin-bottom: 16px;
+            font-weight:600;
+            font-size:1rem;
+            border:1.2px solid #b1efcb;
         }
         .chat-container {
             background: #f8fafc;
@@ -86,11 +129,9 @@
             text-decoration: underline;
         }
         .clearfix::after { content: ""; display: table; clear: both; }
-
-        /* FORM CHAT - mesmo padrão do usuário */
         .chat-form {
             display: flex;
-            gap: 10px;
+            gap: 11px;
             margin-top: 14px;
             align-items: center;
         }
@@ -103,7 +144,6 @@
             outline: none;
             box-shadow: 0 1.5px 7px #eaf3ff1c;
             transition: border .17s;
-            min-width: 0;
         }
         .chat-form input[type="text"]:focus {
             border-color: #6ea8fe;
@@ -111,9 +151,10 @@
         .input-file-wrap {
             position: relative;
             flex: 1;
-            min-width: 80px;
-            max-width: 100px;
+            min-width: 100px;
+            max-width: 120px;
             display: flex;
+            flex-direction: column;
             align-items: center;
         }
         .input-file {
@@ -127,14 +168,15 @@
         }
         .label-file {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
             width: 100%;
             height: 41px;
             background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%);
             color: #426187;
             border-radius: 9px;
+            padding: 0 4px;
             text-align: center;
             font-weight: 700;
             font-size: 0.97rem;
@@ -144,10 +186,11 @@
             transition: background .17s, box-shadow .19s;
             position: relative;
             z-index: 1;
-            white-space: pre-line;
-            padding: 0 2px;
+            white-space: nowrap;
         }
-        .label-file span { line-height: 1.12; }
+        .label-file span {
+            line-height: 1.12;
+        }
         .label-file:hover {
             background: #f0f8ff;
             box-shadow: 0 2px 14px #6ea8fe1b;
@@ -155,28 +198,26 @@
         .filename {
             font-size: .93rem;
             color: #3770a7;
-            margin-left: 8px;
+            margin-top: 4px;
             word-break: break-all;
-            margin-top: 6px;
         }
-        .btn-enviar {
+        .chat-form button {
             background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff;
-            font-weight: bold;
-            font-size: 1.09rem;
             border: none;
             border-radius: 9px;
-            padding: 13px 0;
-            box-shadow: 0 2px 8px #38a06732;
+            padding: 13px 27px;
+            font-weight: 700;
+            font-size: 1.09rem;
+            cursor: pointer;
             transition: background .2s, box-shadow .2s;
+            box-shadow: 0 2px 8px #38a06732;
+            min-width: 96px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            height: 41px;
-            min-width: 96px;
         }
-        .btn-enviar:hover {
+        .chat-form button:hover {
             background: linear-gradient(90deg,#38a067 85%,#49b87a 100%);
             box-shadow: 0 4px 18px #3fa88930;
         }
@@ -192,8 +233,8 @@
             .card { padding: 14px 5vw 16px 5vw; }
             h3 { font-size: 1.15rem; }
             .chat-form button { min-width: 72px; padding: 11px 8px;}
-            .input-file-wrap { min-width: 60px; max-width: 80px; }
-            .label-file { font-size: .93rem; max-width: 80px; }
+            .input-file-wrap { min-width: 80px; max-width: 100px; }
+            .label-file { font-size: .90rem; }
         }
     </style>
 </head>
@@ -204,6 +245,21 @@
             <b>Status:</b> {{ denuncia.status }}<br>
             <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}
         </div>
+        <!-- Formulário de atualização de status -->
+        <div class="status-form-wrap">
+            <form method="post" action="{{ url_for('admin_denuncia', protocolo=denuncia.protocolo) }}">
+                <label for="novo_status"><b>Status da denúncia:</b></label>
+                <select name="novo_status" id="novo_status">
+                    <option value="Recebida" {% if denuncia.status == "Recebida" %}selected{% endif %}>Recebida</option>
+                    <option value="Em Andamento" {% if denuncia.status == "Em Andamento" %}selected{% endif %}>Em Andamento</option>
+                    <option value="Finalizada" {% if denuncia.status == "Finalizada" %}selected{% endif %}>Finalizada</option>
+                </select>
+                <button type="submit" name="atualizar_status" value="1">Atualizar</button>
+            </form>
+        </div>
+        {% if status_msg %}
+            <div class="status-sucesso">{{ status_msg }}</div>
+        {% endif %}
         <div class="chat-container clearfix">
             {% if mensagens %}
                 {% for m in mensagens %}
@@ -222,17 +278,19 @@
             {% endif %}
             <div class="clearfix"></div>
         </div>
-        <!-- CHAT FORM NO MESMO PADRÃO DO USUÁRIO -->
+        <!-- CHAT FORM MODERNO -->
         <form method="post" enctype="multipart/form-data" class="chat-form" id="chatFormRh">
             <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
             <div class="input-file-wrap">
-                <label for="file-upload-rh" class="label-file"><span>Selecionar<br>Arquivo</span></label>
+                <label for="file-upload-rh" class="label-file">
+                    <span>Selecionar<br>Arquivo</span>
+                </label>
                 <input type="file" id="file-upload-rh" name="anexo" class="input-file"
                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                        onchange="showFilenameRh()">
                 <div class="filename" id="filename-rh"></div>
             </div>
-            <button type="submit" class="btn-enviar">Enviar</button>
+            <button type="submit">Enviar</button>
         </form>
         <a href="{{ url_for('admin') }}" class="voltar-link">Voltar para painel</a>
     </div>
@@ -241,7 +299,11 @@
         function showFilenameRh() {
             const input = document.getElementById('file-upload-rh');
             const label = document.getElementById('filename-rh');
-            label.textContent = input.files.length ? input.files[0].name : '';
+            if (input.files.length) {
+                label.textContent = input.files[0].name;
+            } else {
+                label.textContent = '';
+            }
         }
     </script>
 </body>
