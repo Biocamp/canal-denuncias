@@ -1,54 +1,53 @@
 {% if denuncia %}
-<div class="info-status">
-    <b>Protocolo:</b> {{ denuncia.protocolo }}<br>
-    <b>Status:</b> {{ denuncia.status }}<br>
-    {% if denuncia.observacao %}
-        <b>Observações:</b> {{ denuncia.observacao }}<br>
-    {% endif %}
-    <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}
-</div>
-
-{% if denuncia.status == 'Finalizada' %}
-    <div style="background:#ffe9e9; color:#a94e4e; border-radius:9px; padding:18px 16px; margin-bottom:17px; text-align:center; font-weight:bold;">
-        Denúncia finalizada. Não é mais possível enviar mensagens neste protocolo.
+    <div class="info-status">
+        <b>Protocolo:</b> {{ denuncia.protocolo }}<br>
+        <b>Status:</b> {{ denuncia.status }}<br>
+        {% if denuncia.observacao %}
+            <b>Observações:</b> {{ denuncia.observacao }}<br>
+        {% endif %}
+        <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}
     </div>
-{% endif %}
 
-<!-- Chat -->
-<div class="chat-container clearfix" id="chat-{{ denuncia.protocolo }}">
-    {% if mensagens %}
-        {% for m in mensagens %}
-            <div class="chat-msg {% if m.autor == 'Usuário' %}chat-user{% else %}chat-rh{% endif %}">
-                <span class="chat-author">{{ m.autor }}:</span>
-                {{ m.texto }}
-                {% if m.anexo %}
-                    <br>
-                    <a href="{{ url_for('chat_arquivo', filename=m.anexo) }}" target="_blank" class="chat-anexo-link">
-                        📎 Anexo
-                    </a>
-                {% endif %}
-                <span class="chat-date">{{ m.data_hora.strftime('%d/%m %H:%M') }}</span>
-            </div>
-        {% endfor %}
-    {% else %}
-        <div style="color:#aaa;text-align:center;">Nenhuma mensagem até o momento.</div>
-    {% endif %}
-    <div class="clearfix"></div>
-</div>
-
-<!-- Só mostra o formulário se NÃO estiver finalizada -->
-{% if denuncia.status != 'Finalizada' %}
-    <form method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" class="chat-form" autocomplete="off" enctype="multipart/form-data" id="chatForm">
-        <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
-        <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
-        <div class="input-file-wrap">
-            <label for="file-upload-user" class="label-file">Selecionar<br>Arquivo</label>
-            <input type="file" id="file-upload-user" name="anexo" class="input-file"
-                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                onchange="showFilenameUser()">
-            <div class="filename" id="filename-user"></div>
+    {% if denuncia.status == 'Finalizada' %}
+        <div style="background:#ffe9e9; color:#a94e4e; border-radius:9px; padding:18px 16px; margin-bottom:17px; text-align:center; font-weight:bold;">
+            Denúncia finalizada.<br>Esta conversa foi encerrada e não pode mais receber mensagens.
         </div>
-        <button type="submit" class="btn-enviar">Enviar</button>
-    </form>
-{% endif %}
+    {% endif %}
+
+    <!-- Chat -->
+    <div class="chat-container clearfix" id="chat-{{ denuncia.protocolo }}">
+        {% if mensagens %}
+            {% for m in mensagens %}
+                <div class="chat-msg {% if m.autor == 'Usuário' %}chat-user{% else %}chat-rh{% endif %}">
+                    <span class="chat-author">{{ m.autor }}:</span>
+                    {{ m.texto }}
+                    {% if m.anexo %}
+                        <br>
+                        <a href="{{ url_for('chat_arquivo', filename=m.anexo) }}" target="_blank" class="chat-anexo-link">
+                            📎 Anexo
+                        </a>
+                    {% endif %}
+                    <span class="chat-date">{{ m.data_hora.strftime('%d/%m %H:%M') }}</span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="color:#aaa;text-align:center;">Nenhuma mensagem até o momento.</div>
+        {% endif %}
+        <div class="clearfix"></div>
+    </div>
+
+    {% if denuncia.status != 'Finalizada' %}
+        <form method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" class="chat-form" autocomplete="off" enctype="multipart/form-data" id="chatForm">
+            <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
+            <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
+            <div class="input-file-wrap">
+                <label for="file-upload-user" class="label-file">Selecionar<br>Arquivo</label>
+                <input type="file" id="file-upload-user" name="anexo" class="input-file"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                    onchange="showFilenameUser()">
+                <div class="filename" id="filename-user"></div>
+            </div>
+            <button type="submit" class="btn-enviar">Enviar</button>
+        </form>
+    {% endif %}
 {% endif %}
