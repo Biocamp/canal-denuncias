@@ -97,6 +97,28 @@ def login_required(f):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# --- Verificação do PIN ADMIN ---
+@app.route('/admin_verificacao', methods=['GET', 'POST'])
+@login_required
+def admin_verificacao():
+    user = session.get('user')
+    rh_email = os.environ.get('RH_EMAIL', '').lower()
+    admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+    if not user or user['email'].lower() not in (rh_email, admin_email):
+        flash('Acesso restrito ao RH.', 'danger')
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        pin_digitado = request.form.get('pin', '')
+        pin_correto = os.environ.get('ADMIN_PIN', '123456')
+        if pin_digitado == pin_correto:
+            session.pop('pending_pin', None)
+            session['admin_verified'] = True
+            return redirect(url_for('admin'))
+        else:
+            flash('PIN incorreto.', 'danger')
+    return render_template('admin_verificacao.html')
+
 # --- Rotas Gerais ---
 @app.route('/')
 @login_required
@@ -115,8 +137,11 @@ def login():
             or email == admin_email
         ):
             session['user'] = {'email': email}
+            # se for RH ou Admin, exige o PIN!
             if email == rh_email or email == admin_email:
-                return redirect(url_for('admin'))
+                session['pending_pin'] = True
+                session.pop('admin_verified', None)
+                return redirect(url_for('admin_verificacao'))
             else:
                 return redirect(url_for('denuncia'))
         else:
@@ -126,6 +151,8 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user', None)
+    session.pop('pending_pin', None)
+    session.pop('admin_verified', None)
     return redirect(url_for('login'))
 
 @app.route('/denuncia', methods=['GET', 'POST'])
@@ -232,8 +259,25 @@ def chat(protocolo):
     return redirect(url_for('consulta', protocolo=protocolo))
 
 # --- Painel ADMIN/RH ---
+def admin_pin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = session.get('user')
+        rh_email = os.environ.get('RH_EMAIL', '').lower()
+        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+        # Precisa estar autenticado e ter passado pelo PIN
+        if user and user['email'].lower() in (rh_email, admin_email):
+            if session.get('pending_pin') or not session.get('admin_verified'):
+                return redirect(url_for('admin_verificacao'))
+            return f(*args, **kwargs)
+        else:
+            flash('Acesso restrito ao RH.', 'danger')
+            return redirect(url_for('login'))
+    return decorated_function
+
 @app.route('/admin', methods=['GET'])
 @login_required
+@admin_pin_required
 def admin():
     user = session.get('user')
     rh_email = os.environ.get('RH_EMAIL', '').lower()
@@ -264,6 +308,7 @@ def admin():
 
 @app.route('/admin/denuncia/<protocolo>', methods=['GET', 'POST'])
 @login_required
+@admin_pin_required
 def admin_denuncia(protocolo):
     user = session.get('user')
     rh_email = os.environ.get('RH_EMAIL', '').lower()
