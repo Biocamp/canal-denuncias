@@ -205,6 +205,11 @@ def chat(protocolo):
         flash("Protocolo não encontrado.", "danger")
         return redirect(url_for('consulta'))
 
+    # Não deixa enviar se finalizada
+    if denuncia.status == 'Finalizada':
+        flash("Essa conversa foi encerrada e não pode mais receber mensagens.", "danger")
+        return redirect(url_for('consulta', protocolo=protocolo))
+
     texto = request.form.get('mensagem', '').strip()
     file = request.files.get('anexo')
     anexo_nome = None
@@ -220,7 +225,7 @@ def chat(protocolo):
             autor="Usuário",
             texto=texto if texto else None,
             anexo=anexo_nome,
-            lida_pelo_rh=False  # mensagem nova para o RH
+            lida_pelo_rh=False
         )
         db.session.add(msg)
         db.session.commit()
