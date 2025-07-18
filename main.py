@@ -65,16 +65,17 @@ with app.app_context():
 
 # --- Carrega listas de e-mails RH e Admin ---
 raw_rh       = os.environ.get('RH_EMAIL', '').strip()
-RH_EMAILS    = [e.lower() for e in raw_rh.split(',') if e.strip()]
+RH_EMAILS    = [e.strip().lower() for e in raw_rh.split(',') if e.strip()]
 raw_admin    = os.environ.get('ADMIN_EMAIL', '').strip()
-ADMIN_EMAILS = [e.lower() for e in raw_admin.split(',') if e.strip()]
+ADMIN_EMAILS = [e.strip().lower() for e in raw_admin.split(',') if e.strip()]
 
-app.logger.debug(f"RAW_RH:    {raw_rh!r}")
-app.logger.debug(f"RH_EMAILS: {RH_EMAILS}")
-app.logger.debug(f"RAW_ADMIN:{raw_admin!r}")
-app.logger.debug(f"ADMIN_EMAILS: {ADMIN_EMAILS}")
+# DEBUG: confira nos logs
+app.logger.debug(f"RAW_RH       = {raw_rh!r}")
+app.logger.debug(f"Parsed RH    = {RH_EMAILS}")
+app.logger.debug(f"RAW_ADMIN    = {raw_admin!r}")
+app.logger.debug(f"Parsed ADMIN = {ADMIN_EMAILS}")
 
-# --- Autorizados adicionais (autorizados.txt) ---
+# --- Autorizados adicionais ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -123,7 +124,7 @@ def admin_pin_required(f):
     return decorated_function
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- Rotas ---
 @app.route('/admin_verificacao', methods=['GET','POST'])
@@ -144,10 +145,16 @@ def admin_verificacao():
         flash('PIN incorreto.', 'danger')
     return render_template('admin_verificacao.html')
 
+@app.route('/')
+@login_required
+def index():
+    return redirect(url_for('denuncia'))
+
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
+        app.logger.debug(f"EMAIL DIGITADO: {email}")
         if email in EMAILS_AUTORIZADOS + RH_EMAILS + ADMIN_EMAILS:
             session['user'] = {'email': email}
             if email in RH_EMAILS + ADMIN_EMAILS:
@@ -163,51 +170,40 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route('/')
-@login_required
-def index():
-    return redirect(url_for('denuncia'))
-
 @app.route('/denuncia', methods=['GET','POST'])
 @login_required
 def denuncia():
     if request.method == 'POST':
         if not request.form.get('terms'):
-            flash('Você precisa aceitar os termos para prosseguir.', 'warning')
+            flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
             return redirect(url_for('denuncia'))
         texto = request.form['texto']
         file  = request.files.get('anexo')
         anexo_nome = None
         if file and file.filename and allowed_file(file.filename):
-            ext = file.filename.rsplit('.',1)[1].lower()
+            ext = file.filename.rsplit('.', 1)[1].lower()
             anexo_nome = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
         protocolo = secrets.token_hex(6).upper()
-        nova = Denuncia(texto=texto, protocolo=protocolo, status='Recebida')
-        db.session.add(nova)
+        nova_denuncia = Denuncia(texto=texto, protocolo=protocolo, status='Recebida')
+        db.session.add(nova_denuncia)
         db.session.commit()
         if anexo_nome:
-            msg_chat = MensagemChat(
-                denuncia_id=nova.id,
+            msg = MensagemChat(
+                denuncia_id=nova_denuncia.id,
                 autor="Usuário",
                 texto="Anexo inicial da denúncia.",
                 anexo=anexo_nome,
                 lida_pelo_rh=False
             )
-            db.session.add(msg_chat)
+            db.session.add(msg)
             db.session.commit()
         notify_rh(texto, protocolo)
-        flash(f'Denúncia enviada! Protocolo: {protocolo}', 'success')
+        flash(f'Denúncia enviada com sucesso! Salve seu protocolo: {protocolo}', 'success')
         return redirect(url_for('denuncia'))
     return render_template('denuncia.html')
 
-# --- Stub para a rota 'consulta' (para não quebrar o link no template) ---
-@app.route('/consulta')
-@login_required
-def consulta():
-    return redirect(url_for('denuncia'))
-
-# ... demais rotas inalteradas ...
+# ... demais rotas inalteradas, incluindo chat, painel do RH, consulta de protocolo etc. ...
 
 if __name__ == '__main__':
     app.run(debug=True)
