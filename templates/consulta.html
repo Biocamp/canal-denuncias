@@ -9,7 +9,6 @@
   <div class="container">
     <h1>Consulta de Denúncias</h1>
 
-    <!-- 1) Formulário de busca -->
     <form method="post" action="{{ url_for('consulta') }}" class="consulta-form">
       <input
         type="text"
@@ -22,15 +21,13 @@
       <button type="submit" class="btn">Buscar</button>
     </form>
 
-    <!-- 2) Só exibe o chat se encontrar a denúncia -->
     {% if denuncia %}
       <hr>
       <h2>Protocolo: {{ denuncia.protocolo }}</h2>
 
-      <!-- 2.1) Exibe histórico de mensagens -->
       <div class="chat-messages" style="margin-bottom: 16px; max-height: 300px; overflow-y: auto;">
         {% for msg in mensagens %}
-          <div class="message {{ msg.autor|lower }}" style="padding:8px; border-bottom:1px solid #eee;">
+          <div style="padding:8px; border-bottom:1px solid #eee;">
             <div>
               <strong>{{ msg.autor }}:</strong>
               <small style="color:#666;">{{ msg.data_hora.strftime('%d/%m/%Y %H:%M') }}</small>
@@ -45,17 +42,14 @@
         {% endfor %}
       </div>
 
-      <!-- 2.2) Formulário de envio de nova mensagem -->
       <form
         id="chatForm"
         method="post"
         action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
         autocomplete="off"
         enctype="multipart/form-data"
-        style="margin-bottom: 40px;"
       >
         <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
-
         <input
           type="text"
           name="mensagem"
@@ -64,7 +58,6 @@
           autocomplete="off"
           style="width: 100%; margin-bottom: 8px;"
         >
-
         <div style="display: flex; gap: 12px; margin-bottom: 8px;">
           <label for="file-upload-user" class="btn">Anexar Documento</label>
           <input
@@ -78,7 +71,6 @@
           <span id="filename-user" style="font-style: italic;"></span>
           <button type="button" class="btn" onclick="abrirGravadorAudio()">Gravar Áudio</button>
         </div>
-
         <button type="submit" class="btn">Enviar</button>
       </form>
     {% endif %}
