@@ -133,7 +133,7 @@
                     <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
                     <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
                     <div class="input-file-wrap">
-                        <label for="file-upload-user" class="label-file">Selecionar<br>Arquivo</label>
+                        <label for="file-upload-user" class="label-file">Anexar<br>Documento</label>
                         <input type="file" id="file-upload-user" name="anexo" class="input-file"
                             accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                             onchange="showFilenameUser()">
@@ -146,7 +146,6 @@
     </div>
     <div class="footer">Canal de Denúncias | Biocamp</div>
     <script>
-        // Mostra nome do arquivo
         function showFilenameUser() {
             const input = document.getElementById('file-upload-user');
             const label = document.getElementById('filename-user');

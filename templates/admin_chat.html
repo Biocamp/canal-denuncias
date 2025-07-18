@@ -30,7 +30,6 @@
             padding: 0 0 12px 0;
             border-bottom: 1.5px solid #e4e9f2;
         }
-        /* Bloco do select status */
         .status-form-wrap {
             margin-bottom: 16px;
             text-align: left;
@@ -73,7 +72,6 @@
             font-size:1rem;
             border:1.2px solid #b1efcb;
         }
-        /* --- NOVO BLOCO --- */
         .status-denuncia {
             background:#f0f7fe;
             border-radius:12px;
@@ -92,7 +90,6 @@
             line-height: 1.45;
             white-space: pre-line;
         }
-        /* --- FIM NOVO BLOCO --- */
         .chat-container {
             background: #f8fafc;
             border: 1.5px solid #e4e9f2;
@@ -265,7 +262,6 @@
             <b>Status:</b> {{ denuncia.status }}<br>
             <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}
         </div>
-        <!-- Formulário de atualização de status -->
         <div class="status-form-wrap">
             <form method="post" action="{{ url_for('admin_denuncia', protocolo=denuncia.protocolo) }}">
                 <label for="novo_status"><b>Status da denúncia:</b></label>
@@ -313,7 +309,7 @@
             <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
             <div class="input-file-wrap">
                 <label for="file-upload-rh" class="label-file">
-                    <span>Selecionar<br>Arquivo</span>
+                    <span>Anexar<br>Documento</span>
                 </label>
                 <input type="file" id="file-upload-rh" name="anexo" class="input-file"
                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
@@ -325,7 +321,6 @@
         <a href="{{ url_for('admin') }}" class="voltar-link">Voltar para painel</a>
     </div>
     <script>
-        // Mostra nome do arquivo
         function showFilenameRh() {
             const input = document.getElementById('file-upload-rh');
             const label = document.getElementById('filename-rh');
