@@ -63,20 +63,19 @@ class MensagemChat(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- Carrega listas de e-mails RH e Admin (exatamente das VARS do Railway) ---
-raw_rh    = os.environ.get('RH_EMAIL', '').strip()
-RH_EMAILS = [e.lower() for e in raw_rh.split(',') if e.strip()]
-
+# --- Carrega listas de e-mails RH e Admin ---
+raw_rh       = os.environ.get('RH_EMAIL', '').strip()
+RH_EMAILS    = [e.lower() for e in raw_rh.split(',') if e.strip()]
 raw_admin    = os.environ.get('ADMIN_EMAIL', '').strip()
 ADMIN_EMAILS = [e.lower() for e in raw_admin.split(',') if e.strip()]
 
-# DEBUG: confira nos logs se está tudo correto
-app.logger.debug(f"RAW_RH       = {raw_rh!r}")
-app.logger.debug(f"Parsed RH    = {RH_EMAILS}")
-app.logger.debug(f"RAW_ADMIN    = {raw_admin!r}")
-app.logger.debug(f"Parsed ADMIN = {ADMIN_EMAILS}")
+# DEBUG: mostra o valor cru e a lista
+app.logger.debug(f"RAW_RH from ENV: {raw_rh!r}")
+app.logger.debug(f"Parsed RH_EMAILS: {RH_EMAILS}")
+app.logger.debug(f"RAW_ADMIN from ENV: {raw_admin!r}")
+app.logger.debug(f"Parsed ADMIN_EMAILS: {ADMIN_EMAILS}")
 
-# --- Autorizados adicionais (arquivo autorizados.txt) ---
+# --- Autorizados adicionais ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -104,7 +103,7 @@ def notify_rh(texto_denuncia, protocolo):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user = session.get('user')
+        user   = session.get('user')
         allowed = set(EMAILS_AUTORIZADOS + RH_EMAILS + ADMIN_EMAILS)
         if not user or user.get('email','').lower() not in allowed:
             flash('Acesso restrito apenas para usuários autorizados.', 'warning')
@@ -128,7 +127,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- Rotas ---
-@app.route('/admin_verificacao', methods=['GET','POST'])
+@app.route('/admin_verificacao', methods=['GET', 'POST'])
 @login_required
 @admin_pin_required
 def admin_verificacao():
@@ -137,8 +136,8 @@ def admin_verificacao():
         flash('Acesso restrito ao RH.', 'danger')
         return redirect(url_for('login'))
     if request.method == 'POST':
-        pin_digitado = request.form.get('pin','').strip()
-        pin_correto  = os.environ.get('ADMIN_PIN','123456').strip()
+        pin_digitado = request.form.get('pin', '').strip()
+        pin_correto  = os.environ.get('ADMIN_PIN', '123456').strip()
         if pin_digitado == pin_correto:
             session.pop('pending_pin', None)
             session['admin_verified'] = True
@@ -151,12 +150,12 @@ def admin_verificacao():
 def index():
     return redirect(url_for('denuncia'))
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         app.logger.debug(f"EMAIL DIGITADO: {email}")
-        if email in EMAILS_AUTORIZADOS + RH_EMAILS + ADMIN_EMAILS:
+        if email in EMAILS_AUTORIZADOS or email in RH_EMAILS or email in ADMIN_EMAILS:
             session['user'] = {'email': email}
             if email in RH_EMAILS + ADMIN_EMAILS:
                 session['pending_pin'] = True
@@ -171,45 +170,40 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route('/denuncia', methods=['GET','POST'])
+@app.route('/denuncia', methods=['GET', 'POST'])
 @login_required
 def denuncia():
     if request.method == 'POST':
         if not request.form.get('terms'):
-            flash('Você precisa aceitar os termos para prosseguir.', 'warning')
+            flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
             return redirect(url_for('denuncia'))
-
         texto = request.form['texto']
         file  = request.files.get('anexo')
         anexo_nome = None
         if file and file.filename and allowed_file(file.filename):
-            ext = file.filename.rsplit('.',1)[1].lower()
+            ext = file.filename.rsplit('.', 1)[1].lower()
             anexo_nome = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
-
         protocolo = secrets.token_hex(6).upper()
-        nova = Denuncia(texto=texto, protocolo=protocolo, status='Recebida')
-        db.session.add(nova)
+        nova_denuncia = Denuncia(texto=texto, protocolo=protocolo, status='Recebida')
+        db.session.add(nova_denuncia)
         db.session.commit()
-
         if anexo_nome:
-            msg_chat = MensagemChat(
-                denuncia_id=nova.id,
+            msg = MensagemChat(
+                denuncia_id=nova_denuncia.id,
                 autor="Usuário",
                 texto="Anexo inicial da denúncia.",
                 anexo=anexo_nome,
                 lida_pelo_rh=False
             )
-            db.session.add(msg_chat)
+            db.session.add(msg)
             db.session.commit()
-
         notify_rh(texto, protocolo)
-        flash(f'Denúncia enviada com sucesso! Protocolo: {protocolo}', 'success')
+        flash(f'Denúncia enviada com sucesso! Salve seu protocolo: {protocolo}', 'success')
         return redirect(url_for('denuncia'))
-
     return render_template('denuncia.html')
 
-# … se tiver outras rotas (admin, chat, download de anexos), mantenha-as aqui …
+# ... demais rotas inalteradas ...
 
 if __name__ == '__main__':
     app.run(debug=True)
