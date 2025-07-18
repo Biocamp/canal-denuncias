@@ -1,6 +1,5 @@
 import os
 import uuid
-import base64
 import secrets
 from flask import Flask, redirect, url_for, session, request, render_template, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
@@ -21,13 +20,15 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+# Agora suportando também audio e vídeo
 ALLOWED_EXTENSIONS = {
     'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx',
-    'mp3', 'wav', 'ogg', 'm4a', 'mp4', 'webm', 'mov'
+    'mp3', 'wav', 'ogg', 'mp4', 'webm', 'mov'
 }
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# --- Configuração Flask-Mail via ENV ---
 app.config.update(
     MAIL_SERVER=os.environ.get('MAIL_SERVER'),
     MAIL_PORT=int(os.environ.get('MAIL_PORT', 465)),
@@ -38,6 +39,7 @@ app.config.update(
 mail = Mail(app)
 db = SQLAlchemy(app)
 
+# --- Modelos ---
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
@@ -49,7 +51,7 @@ class Denuncia(db.Model):
 class MensagemChat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     denuncia_id = db.Column(db.Integer, db.ForeignKey('denuncia.id'), nullable=False)
-    autor = db.Column(db.String(30), nullable=False)
+    autor = db.Column(db.String(30), nullable=False)  # "Usuário" ou "RH"
     texto = db.Column(db.Text, nullable=True)
     data_hora = db.Column(db.DateTime, server_default=db.func.now())
     anexo = db.Column(db.String(120), nullable=True)
@@ -59,6 +61,7 @@ class MensagemChat(db.Model):
 with app.app_context():
     db.create_all()
 
+# --- Autorizados ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
@@ -67,6 +70,7 @@ def carregar_emails_autorizados(arquivo='autorizados.txt'):
 
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
+# --- Envio de e-mail ao RH ---
 def _send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
@@ -83,41 +87,39 @@ def notify_rh(texto_denuncia, protocolo):
     )
     Thread(target=_send_async_email, args=(app, msg)).start()
 
+# --- Decorators de permissão ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = session.get('user')
-        if not user or user['email'].lower() not in EMAILS_AUTORIZADOS and user['email'].lower() not in (
-            os.environ.get('RH_EMAIL', '').lower(), os.environ.get('ADMIN_EMAIL', '').lower()):
+        rh_email = os.environ.get('RH_EMAIL', '').lower()
+        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+        if not user or user['email'].lower() not in EMAILS_AUTORIZADOS and user['email'].lower() not in (rh_email, admin_email):
             flash('Acesso restrito apenas para usuários autorizados.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
+def admin_pin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = session.get('user')
+        rh_email = os.environ.get('RH_EMAIL', '').lower()
+        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+        # Precisa estar autenticado e ter passado pelo PIN
+        if user and user['email'].lower() in (rh_email, admin_email):
+            if session.get('pending_pin') or not session.get('admin_verified'):
+                return redirect(url_for('admin_verificacao'))
+            return f(*args, **kwargs)
+        else:
+            flash('Acesso restrito ao RH.', 'danger')
+            return redirect(url_for('login'))
+    return decorated_function
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def salvar_audio_base64(audio_data, folder=UPLOAD_FOLDER):
-    """Salva áudio gravado (em base64) como .webm e retorna o nome do arquivo salvo"""
-    if not audio_data:
-        return None
-    try:
-        if audio_data.startswith('data:audio'):
-            header, data = audio_data.split(',', 1)
-            ext = '.webm' if 'webm' in header else '.wav'
-        else:
-            data = audio_data
-            ext = '.webm'
-        audio_bytes = base64.b64decode(data)
-        filename = f"{uuid.uuid4().hex}{ext}"
-        path = os.path.join(folder, filename)
-        with open(path, 'wb') as f:
-            f.write(audio_bytes)
-        return filename
-    except Exception as e:
-        print("Erro ao salvar áudio:", e)
-        return None
-
+# --- Verificação do PIN ADMIN ---
 @app.route('/admin_verificacao', methods=['GET', 'POST'])
 @login_required
 def admin_verificacao():
@@ -139,6 +141,7 @@ def admin_verificacao():
             flash('PIN incorreto.', 'danger')
     return render_template('admin_verificacao.html')
 
+# --- Rotas Gerais ---
 @app.route('/')
 @login_required
 def index():
@@ -156,6 +159,7 @@ def login():
             or email == admin_email
         ):
             session['user'] = {'email': email}
+            # se for RH ou Admin, exige o PIN!
             if email == rh_email or email == admin_email:
                 session['pending_pin'] = True
                 session.pop('admin_verified', None)
@@ -185,14 +189,10 @@ def denuncia():
         file = request.files.get('anexo')
         anexo_nome = None
 
-        # Upload tradicional
         if file and file.filename and allowed_file(file.filename):
             ext = file.filename.rsplit('.', 1)[1].lower()
             anexo_nome = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
-        # Upload via áudio gravado
-        elif request.form.get('audio_data'):
-            anexo_nome = salvar_audio_base64(request.form.get('audio_data'))
 
         protocolo = secrets.token_hex(6).upper()
         nova_denuncia = Denuncia(
@@ -228,6 +228,7 @@ def termos():
 def chat_arquivo(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+# --- Consulta/Chat Usuário ---
 @app.route('/consulta', methods=['GET', 'POST'])
 def consulta():
     denuncia = None
@@ -253,6 +254,7 @@ def chat(protocolo):
         flash("Protocolo não encontrado.", "danger")
         return redirect(url_for('consulta'))
 
+    # Não deixa enviar se finalizada
     if denuncia.status == 'Finalizada':
         flash("Essa conversa foi encerrada e não pode mais receber mensagens.", "danger")
         return redirect(url_for('consulta', protocolo=protocolo))
@@ -261,14 +263,10 @@ def chat(protocolo):
     file = request.files.get('anexo')
     anexo_nome = None
 
-    # Upload tradicional
     if file and file.filename and allowed_file(file.filename):
         ext = file.filename.rsplit('.', 1)[1].lower()
         anexo_nome = f"{uuid.uuid4().hex}.{ext}"
         file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
-    # Upload via áudio gravado
-    elif request.form.get('audio_data'):
-        anexo_nome = salvar_audio_base64(request.form.get('audio_data'))
 
     if texto or anexo_nome:
         msg = MensagemChat(
@@ -282,21 +280,7 @@ def chat(protocolo):
         db.session.commit()
     return redirect(url_for('consulta', protocolo=protocolo))
 
-def admin_pin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        user = session.get('user')
-        rh_email = os.environ.get('RH_EMAIL', '').lower()
-        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
-        if user and user['email'].lower() in (rh_email, admin_email):
-            if session.get('pending_pin') or not session.get('admin_verified'):
-                return redirect(url_for('admin_verificacao'))
-            return f(*args, **kwargs)
-        else:
-            flash('Acesso restrito ao RH.', 'danger')
-            return redirect(url_for('login'))
-    return decorated_function
-
+# --- Painel ADMIN/RH ---
 @app.route('/admin', methods=['GET'])
 @login_required
 @admin_pin_required
@@ -308,8 +292,9 @@ def admin():
         flash('Acesso restrito ao RH.', 'danger')
         return redirect(url_for('login'))
 
+    # Para badge de novas mensagens: conta quantas mensagens não lidas pelo RH existem em cada denúncia
     subq = db.session.query(
-        MensagemChat.denuncia_id,
+        MensagemChat.denuncia_id.label('denuncia_id'),
         db.func.count().label('novas_msgs')
     ).filter(
         MensagemChat.autor == "Usuário",
@@ -341,6 +326,7 @@ def admin_denuncia(protocolo):
     denuncia = Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
     mensagens = MensagemChat.query.filter_by(denuncia_id=denuncia.id).order_by(MensagemChat.data_hora.asc()).all()
 
+    # Atualizar status da denúncia
     status_msg = None
     if request.method == 'POST' and 'atualizar_status' in request.form:
         novo_status = request.form.get('novo_status')
@@ -349,10 +335,11 @@ def admin_denuncia(protocolo):
             db.session.commit()
             status_msg = f"Status atualizado para: {novo_status}"
 
+    # Marcar mensagens do usuário como lidas quando o RH entra no chat
     MensagemChat.query.filter_by(denuncia_id=denuncia.id, autor='Usuário', lida_pelo_rh=False).update({'lida_pelo_rh': True})
     db.session.commit()
 
-    # Resposta no chat
+    # Enviar mensagem do RH
     if request.method == 'POST' and 'mensagem' in request.form and 'atualizar_status' not in request.form:
         texto = request.form.get('mensagem', '').strip()
         file = request.files.get('anexo')
@@ -361,8 +348,6 @@ def admin_denuncia(protocolo):
             ext = file.filename.rsplit('.', 1)[1].lower()
             filename = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(UPLOAD_FOLDER, filename))
-        elif request.form.get('audio_data'):
-            filename = salvar_audio_base64(request.form.get('audio_data'))
         if texto or filename:
             nova_msg = MensagemChat(
                 denuncia_id=denuncia.id,

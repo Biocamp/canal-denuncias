@@ -1,225 +1,27 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Acompanhe sua denúncia</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { background: #f5f7fa; font-family: Arial, sans-serif; }
-        .card-custom { max-width: 520px; margin: 60px auto; padding: 40px 36px 32px 36px; background: #fff; border-radius: 20px; box-shadow: 0 4px 24px #00306118; }
-        h2 { color: #1a355e; font-weight: 700; margin-bottom: 24px; text-align: center; }
-        label { font-size: 1.07rem; color: #222; margin-bottom: 0; }
-        input[type="text"], input[type="email"] { width: 100%; padding: 13px; border-radius: 10px; border: 1.2px solid #dbe2ee; font-size: 1rem; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .18s; outline: none; }
-        input[type="text"]:focus, input[type="email"]:focus { border-color: #6ea8fe; }
-        .btn-consultar { background: linear-gradient(90deg,#49b87a 80%,#38a067 100%); color: #fff !important; font-weight: bold; font-size: 1.10rem; border: none; border-radius: 10px; padding: 13px 0; min-width: 120px; box-shadow: 0 2px 10px #38a0672b; display: inline-block; text-align: center; margin-left: 12px; transition: background .18s, box-shadow .18s; }
-        .btn-consultar:hover { background: linear-gradient(90deg,#38a067 80%,#49b87a 100%); box-shadow: 0 4px 20px #49b87a23; }
-        .btn-voltar { background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%); color: #fff !important; font-weight: bold; font-size: 1.10rem; border: none; border-radius: 10px; padding: 13px 0; min-width: 120px; box-shadow: 0 2px 10px #6ea8fe26; display: inline-block; text-align: center; margin-right: 0; transition: background .18s, box-shadow .18s; }
-        .btn-voltar:hover { background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%); box-shadow: 0 4px 20px #6ea8fe24; }
-        .btn-enviar { background: linear-gradient(90deg,#49b87a 80%,#38a067 100%); color: #fff; font-weight: bold; font-size: 1.09rem; border: none; border-radius: 9px; padding: 13px 0; box-shadow: 0 2px 8px #38a06732; transition: background .2s, box-shadow .2s; display: flex; align-items: center; justify-content: center; cursor: pointer; height: 41px; min-width: 96px; }
-        .btn-enviar:hover { background: linear-gradient(90deg,#38a067 85%,#49b87a 100%); box-shadow: 0 4px 18px #3fa88930; }
-        .msg-flash { text-align: center; margin: 18px 0 6px 0; padding: 10px; border-radius: 8px; background: #e6f1ff; color: #29599a; border: 1px solid #b1d0f7; }
-        .info-status { background: #eaf2ff; border-left: 5px solid #6ea8fe; padding: 20px 22px 14px 22px; margin-top: 24px; margin-bottom: 18px; border-radius: 12px; font-size: 1.07rem; box-shadow: 0 1.5px 6px #6ea8fe13; }
-        .footer { text-align:center; color:#888; margin-top:24px; }
-        .status-denuncia {
-            background:#f0f7fe;
-            border-radius:12px;
-            padding:15px 18px;
-            margin-bottom:20px;
-            border:1.5px solid #c2dbf7;
-        }
-        .status-denuncia strong {
-            color: #183f80;
-            font-size: 1.07em;
-        }
-        .status-denuncia-texto {
-            margin-top:8px;
-            color:#20305c;
-            font-size:1.08rem;
-            line-height: 1.45;
-            white-space: pre-line;
-        }
-        .chat-container { background: #f8fafc; border: 1.5px solid #e4e9f2; border-radius: 14px; max-height: 230px; overflow-y: auto; padding: 18px 14px 10px 14px; margin-bottom: 20px; box-shadow: 0 2px 10px #6ea8fe1a; }
-        .chat-msg { margin-bottom: 15px; padding: 11px 17px 9px 13px; border-radius: 13px; max-width: 88%; min-width: 100px; word-break: break-word; display: inline-block; box-shadow: 0 1px 5px #d4eaff29; position: relative; }
-        .chat-user { background: linear-gradient(90deg,#e7f4fd 90%,#d3e6fb 100%); color: #125; float: right; text-align: right; margin-left: 10%; border-bottom-right-radius: 2px; }
-        .chat-rh { background: linear-gradient(90deg,#e3f9e7 90%,#c2f5d5 100%); color: #174821; float: left; text-align: left; margin-right: 10%; border-bottom-left-radius: 2px; }
-        .chat-author { font-weight: bold; font-size: 1em; margin-right: 8px; }
-        .chat-date { font-size: 0.93em; color: #86a; margin-left: 8px; opacity: .85; }
-        .chat-anexo-link { display: inline-block; margin: 7px 0 0 0; font-size: 0.96em; color: #3fa889; text-decoration: underline; }
-        .clearfix::after { content: ""; display: table; clear: both; }
-        .chat-form { display: flex; gap: 10px; margin-top: 14px; align-items: center; }
-        .chat-form input[type="text"] { flex: 2; min-width: 0; border-radius: 9px; border: 1.2px solid #dbe2ee; padding: 11px 12px; font-size: 1.02rem; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .17s; }
-        .chat-form input[type="text"]:focus { border-color: #6ea8fe; }
-        .input-file-wrap { position: relative; flex: 1; min-width: 130px; max-width: 160px; display: flex; align-items: center; flex-direction: column; }
-        .input-file { opacity: 0; width: 100%; height: 41px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
-        .label-file { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 120px; height: 41px; background: linear-gradient(90deg,#e8f0fa 70%, #dde9f7 100%); color: #426187; border-radius: 9px; padding: 0 4px; text-align: center; font-weight: 700; font-size: 0.96rem; box-shadow: 0 2px 8px #6ea8fe0a; border: 1px solid #bed8ef; cursor: pointer; transition: background .17s, box-shadow .19s; position: relative; z-index: 1; white-space: pre-line;}
-        .label-file:hover { background: #f0f8ff; box-shadow: 0 2px 14px #6ea8fe1b; }
-        .filename { font-size: .93rem; color: #3770a7; margin-left: 8px; word-break: break-all; margin-top: 6px; }
-        .audio-btn {
-            background: linear-gradient(90deg,#e7f4fd 90%, #d3e6fb 100%);
-            color: #245;
-            border: 1.2px solid #a3bde6;
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 1.03rem;
-            font-weight: bold;
-            margin-top: 4px;
-            margin-bottom: 0;
-            cursor: pointer;
-            transition: background .15s;
-            margin-left: 0;
-        }
-        .audio-btn.recording {
-            background: #ffe9e9;
-            color: #d12a2a;
-            border: 1.2px solid #f2b2b2;
-        }
-        .audio-preview {
-            margin-top: 7px;
-            max-width: 96%;
-        }
-        @media (max-width: 700px) {
-            .card-custom { padding: 14px 5vw 16px 5vw; }
-            h2 { font-size: 1.19rem; }
-            .chat-form button { min-width: 72px; padding: 11px 8px;}
-            .input-file-wrap { min-width: 90px; max-width: 100px; }
-            .label-file { font-size: .92rem; max-width: 92px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="card-custom">
-        <h2>Acompanhe sua denúncia</h2>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="msg-flash">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <form method="POST" autocomplete="off">
-            <label for="protocolo">Digite o número do seu protocolo:</label>
-            <input type="text" name="protocolo" id="protocolo" value="{{ protocolo or '' }}" required>
-            <div style="text-align: center; margin-top: 20px;">
-                <button type="submit" class="btn-consultar">Consultar</button>
-                <a href="{{ url_for('denuncia') }}" class="btn-voltar">Voltar</a>
-            </div>
-        </form>
-
-        {% if denuncia %}
-            <div class="info-status">
-                <b>Protocolo:</b> {{ denuncia.protocolo }}<br>
-                <b>Status:</b> {{ denuncia.status }}<br>
-                {% if denuncia.observacao %}
-                    <b>Observações:</b> {{ denuncia.observacao }}<br>
-                {% endif %}
-                <b>Data de envio:</b> {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}
-            </div>
-
-            <!-- Denúncia original -->
-            <div class="status-denuncia">
-                <strong>Denúncia registrada:</strong>
-                <div class="status-denuncia-texto">
-                    {{ denuncia.texto }}
-                </div>
-            </div>
-
-            {% if denuncia.status == 'Finalizada' %}
-                <div style="background:#ffe9e9; color:#a94e4e; border-radius:9px; padding:18px 16px; margin-bottom:17px; text-align:center; font-weight:bold;">
-                    Denúncia finalizada.<br>Esta conversa foi encerrada e não pode mais receber mensagens.
-                </div>
-            {% endif %}
-
-            <div class="chat-container clearfix" id="chat-{{ denuncia.protocolo }}">
-                {% if mensagens %}
-                    {% for m in mensagens %}
-                        <div class="chat-msg {% if m.autor == 'Usuário' %}chat-user{% else %}chat-rh{% endif %}">
-                            <span class="chat-author">{{ m.autor }}:</span>
-                            {{ m.texto }}
-                            {% if m.anexo %}
-                                <br>
-                                {% if m.anexo.endswith('.mp3') or m.anexo.endswith('.wav') or m.anexo.endswith('.ogg') or m.anexo.endswith('.m4a') %}
-                                    <audio controls class="audio-preview">
-                                        <source src="{{ url_for('chat_arquivo', filename=m.anexo) }}">
-                                        Seu navegador não suporta áudio.
-                                    </audio>
-                                {% elif m.anexo.endswith('.mp4') or m.anexo.endswith('.webm') or m.anexo.endswith('.mov') %}
-                                    <video controls class="audio-preview" style="border-radius:10px;">
-                                        <source src="{{ url_for('chat_arquivo', filename=m.anexo) }}">
-                                        Seu navegador não suporta vídeo.
-                                    </video>
-                                {% else %}
-                                    <a href="{{ url_for('chat_arquivo', filename=m.anexo) }}" target="_blank" class="chat-anexo-link">📎 Anexo</a>
-                                {% endif %}
-                            {% endif %}
-                            <span class="chat-date">{{ m.data_hora.strftime('%d/%m %H:%M') }}</span>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div style="color:#aaa;text-align:center;">Nenhuma mensagem até o momento.</div>
-                {% endif %}
-                <div class="clearfix"></div>
-            </div>
-
-            {% if denuncia.status != 'Finalizada' %}
-                <form method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" class="chat-form" autocomplete="off" enctype="multipart/form-data" id="chatForm">
-                    <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
-                    <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
-                    <div class="input-file-wrap">
-                        <label for="file-upload-user" class="label-file">Anexar<br>Documento</label>
-                        <input type="file" id="file-upload-user" name="anexo" class="input-file"
-                            accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.mp3,.wav,.ogg,.mp4,.m4a,.webm,.mov"
-                            onchange="showFilenameUser()">
-                        <div class="filename" id="filename-user"></div>
-                        <button type="button" class="audio-btn" id="recBtnUser" onclick="toggleRecordingUser()">🎤 Gravar Áudio</button>
-                        <audio id="audioPreviewUser" class="audio-preview" style="display:none;" controls></audio>
-                        <input type="hidden" id="audioDataUser" name="audio_data">
-                    </div>
-                    <button type="submit" class="btn-enviar">Enviar</button>
-                </form>
-            {% endif %}
-        {% endif %}
+<!-- ... cabeçalho ... -->
+<form method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" class="chat-form" autocomplete="off" enctype="multipart/form-data" id="chatForm">
+    <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
+    <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off" style="margin-bottom: 8px;">
+    <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+        <div class="input-file-wrap">
+            <label for="file-upload-user" class="label-file btn-azul">Anexar Documento</label>
+            <input type="file" id="file-upload-user" name="anexo" class="input-file"
+                accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                onchange="showFilenameUser()">
+            <div class="filename" id="filename-user"></div>
+        </div>
+        <button type="button" class="btn-azul" onclick="abrirGravadorAudio()">Gravar Áudio</button>
     </div>
-    <div class="footer">Canal de Denúncias | Biocamp</div>
-    <script>
-        function showFilenameUser() {
-            const input = document.getElementById('file-upload-user');
-            const label = document.getElementById('filename-user');
-            label.textContent = input.files.length ? input.files[0].name : '';
-        }
-
-        // Gravação de áudio (usuário)
-        let mediaRecorderUser, audioChunksUser = [];
-        function toggleRecordingUser() {
-            const recBtn = document.getElementById('recBtnUser');
-            const audioPreview = document.getElementById('audioPreviewUser');
-            if (!mediaRecorderUser || mediaRecorderUser.state === "inactive") {
-                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                    mediaRecorderUser = new MediaRecorder(stream);
-                    audioChunksUser = [];
-                    mediaRecorderUser.ondataavailable = e => audioChunksUser.push(e.data);
-                    mediaRecorderUser.onstop = () => {
-                        const audioBlob = new Blob(audioChunksUser, { type: 'audio/webm' });
-                        const url = URL.createObjectURL(audioBlob);
-                        audioPreview.src = url;
-                        audioPreview.style.display = 'block';
-
-                        // Envia para input hidden como base64
-                        let reader = new FileReader();
-                        reader.onloadend = function() {
-                            document.getElementById('audioDataUser').value = reader.result;
-                        }
-                        reader.readAsDataURL(audioBlob);
-                    };
-                    mediaRecorderUser.start();
-                    recBtn.textContent = "⏹️ Parar Gravação";
-                    recBtn.classList.add("recording");
-                });
-            } else {
-                mediaRecorderUser.stop();
-                recBtn.textContent = "🎤 Gravar Áudio";
-                recBtn.classList.remove("recording");
-            }
-        }
-    </script>
-</body>
-</html>
+    <button type="submit" class="btn-verde">Enviar</button>
+</form>
+<!-- ... rodapé ... -->
+<script>
+    function showFilenameUser() {
+        const input = document.getElementById('file-upload-user');
+        const label = document.getElementById('filename-user');
+        label.textContent = input.files.length ? input.files[0].name : '';
+    }
+    function abrirGravadorAudio() {
+        alert("Funcionalidade de gravação de áudio aqui!");
+    }
+</script>
