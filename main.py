@@ -14,6 +14,7 @@ app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger().info("🚩 APP_VERSION: consulta-v2 🚩")  # <<< marcador de versão
 
 # --- Configurações de Segurança e Banco de Dados ---
 app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123').strip()
@@ -191,6 +192,7 @@ def denuncia():
 
 @app.route('/consulta', methods=['GET','POST'])
 def consulta():
+    app.logger.debug(f"[DEBUG] consulta() chamado — method={request.method}, form={request.form}, args={request.args}")
     denuncia = None
     msgs     = []
     proto    = None
@@ -257,18 +259,15 @@ def admin_denuncia(protocolo):
     d    = Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
     msgs = MensagemChat.query.filter_by(denuncia_id=d.id).order_by(MensagemChat.data_hora.asc()).all()
     status_msg = None
-
     if request.method=='POST' and 'atualizar_status' in request.form:
         ns = request.form.get('novo_status')
         if ns in ['Recebida','Em Andamento','Finalizada']:
             d.status = ns
             db.session.commit()
             status_msg = f'Status: {ns}'
-
     MensagemChat.query.filter_by(denuncia_id=d.id, autor='Usuário', lida_pelo_rh=False)\
         .update({'lida_pelo_rh': True})
     db.session.commit()
-
     if request.method=='POST' and 'mensagem' in request.form and 'atualizar_status' not in request.form:
         texto = request.form.get('mensagem','').strip()
         file  = request.files.get('anexo')
@@ -282,7 +281,6 @@ def admin_denuncia(protocolo):
             db.session.add(nm)
             db.session.commit()
         return redirect(url_for('admin_denuncia', protocolo=protocolo))
-
     return render_template('admin_chat.html', denuncia=d, mensagens=msgs, status_msg=status_msg)
 
 if __name__ == '__main__':
