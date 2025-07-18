@@ -1,106 +1,84 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Consulta de Denúncias</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-  <div class="container">
-    <h1>Consulta de Denúncias</h1>
+{% extends "base.html" %}
+{% block title %}Consulta de Denúncias{% endblock %}
 
-    <!-- Formulário de busca de protocolo -->
-    <form method="post" action="{{ url_for('consulta') }}" class="consulta-form">
-      <input
-        type="text"
-        name="protocolo"
-        placeholder="Digite o protocolo"
-        value="{{ protocolo or '' }}"
-        required
-        style="margin-right: 8px;"
-      >
-      <button type="submit" class="btn btn-primary">Buscar</button>
-    </form>
+{% block content %}
+<div class="container mt-5">
+  <h1 class="mb-4">Consulta de Denúncias</h1>
 
-    {% if denuncia %}
-      <hr>
+  <!-- Formulário de busca de protocolo -->
+  <form method="post" action="{{ url_for('consulta') }}" class="form-inline mb-4">
+    <div class="form-group mr-2">
+      <input type="text"
+             name="protocolo"
+             class="form-control"
+             placeholder="Digite o protocolo"
+             value="{{ protocolo or '' }}"
+             required>
+    </div>
+    <button type="submit" class="btn btn-primary">Buscar</button>
+  </form>
 
-      <!-- Exibe conversa -->
-      <h2>Protocolo: {{ denuncia.protocolo }}</h2>
-      <div class="chat-messages" style="margin-bottom: 16px;">
-        {% for msg in mensagens %}
-          <div class="message {{ msg.autor|lower }}" style="padding:8px; border-bottom:1px solid #eee;">
-            <div>
-              <strong>{{ msg.autor }}:</strong>
-              <small style="color: #666;">
-                {{ msg.data_hora.strftime('%d/%m/%Y %H:%M') }}
-              </small>
-            </div>
-            {% if msg.texto %}
-              <p>{{ msg.texto }}</p>
-            {% endif %}
-            {% if msg.anexo %}
-              <p>
-                <a href="{{ url_for('chat_arquivo', filename=msg.anexo) }}" target="_blank">
-                  Download do arquivo
-                </a>
-              </p>
-            {% endif %}
-          </div>
-        {% endfor %}
+  {% if denuncia %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <strong>Protocolo:</strong> {{ denuncia.protocolo }}
       </div>
-
-      <!-- Formulário de envio de mensagem/anexo -->
-      <form
-        method="post"
-        action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
-        class="chat-form"
-        autocomplete="off"
-        enctype="multipart/form-data"
-        id="chatForm"
-      >
-        <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
-
-        <input
-          type="text"
-          name="mensagem"
-          placeholder="Digite sua mensagem..."
-          maxlength="500"
-          autocomplete="off"
-          style="width: 100%; margin-bottom: 8px;"
-        >
-
-        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
-          <label for="file-upload-user" class="btn btn-secondary">Anexar Documento</label>
-          <input
-            type="file"
-            id="file-upload-user"
-            name="anexo"
-            accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
-            onchange="showFilenameUser()"
-            style="display: none;"
-          >
-          <span id="filename-user" style="font-style: italic;"></span>
-
-          <button type="button" class="btn btn-secondary" onclick="abrirGravadorAudio()">
-            Gravar Áudio
-          </button>
+      <div class="card-body">
+        <!-- Exibe conversa -->
+        <div class="mb-4" style="max-height: 300px; overflow-y: auto;">
+          {% for msg in mensagens %}
+            <div class="mb-3">
+              <div><strong>{{ msg.autor }}:</strong> <small class="text-muted">{{ msg.data_hora.strftime('%d/%m/%Y %H:%M') }}</small></div>
+              {% if msg.texto %}
+                <p>{{ msg.texto }}</p>
+              {% endif %}
+              {% if msg.anexo %}
+                <a href="{{ url_for('chat_arquivo', filename=msg.anexo) }}" class="badge badge-info" target="_blank">Download do arquivo</a>
+              {% endif %}
+            </div>
+          {% endfor %}
         </div>
 
-        <button type="submit" class="btn btn-success">Enviar</button>
-      </form>
-    {% endif %}
-  </div>
+        <!-- Formulário de resposta/chat -->
+        <form method="post"
+              action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
+              enctype="multipart/form-data"
+              autocomplete="off">
 
-  <script>
-    function showFilenameUser() {
-      const input = document.getElementById('file-upload-user');
-      const label = document.getElementById('filename-user');
-      label.textContent = input.files.length ? input.files[0].name : '';
-    }
-    function abrirGravadorAudio() {
-      alert("Funcionalidade de gravação de áudio será implementada aqui.");
-    }
-  </script>
-</body>
-</html>
+          <div class="form-group">
+            <input type="text"
+                   name="mensagem"
+                   class="form-control"
+                   placeholder="Digite sua mensagem..."
+                   maxlength="500"
+                   required>
+          </div>
+
+          <div class="form-row align-items-center mb-3">
+            <div class="col-auto">
+              <label class="btn btn-secondary mb-0">
+                Anexar Documento
+                <input type="file"
+                       name="anexo"
+                       class="d-none"
+                       accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx">
+              </label>
+            </div>
+            <div class="col-auto">
+              <button type="button" class="btn btn-secondary" onclick="abrirGravadorAudio()">Gravar Áudio</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success">Enviar</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+function abrirGravadorAudio() {
+  alert("Funcionalidade de gravação de áudio ainda não implementada.");
+}
+</script>
+{% endblock %}
