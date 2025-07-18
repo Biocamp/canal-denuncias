@@ -64,16 +64,16 @@ with app.app_context():
     db.create_all()
 
 # --- Carrega listas de e-mails RH e Admin ---
-raw_rh       = os.environ.get('RH_EMAIL', '').strip()
+raw_rh       = os.environ.get('RH_EMAIL', '')
 RH_EMAILS    = [e.strip().lower() for e in raw_rh.split(',') if e.strip()]
-raw_admin    = os.environ.get('ADMIN_EMAIL', '').strip()
+raw_admin    = os.environ.get('ADMIN_EMAIL', '')
 ADMIN_EMAILS = [e.strip().lower() for e in raw_admin.split(',') if e.strip()]
 
-# DEBUG: confira nos logs
-app.logger.debug(f"RAW_RH       = {raw_rh!r}")
-app.logger.debug(f"Parsed RH    = {RH_EMAILS}")
-app.logger.debug(f"RAW_ADMIN    = {raw_admin!r}")
-app.logger.debug(f"Parsed ADMIN = {ADMIN_EMAILS}")
+# DEBUG: mostra o valor cru e a lista
+app.logger.debug(f"RAW_RH from ENV: {raw_rh!r}")
+app.logger.debug(f"Parsed RH_EMAILS: {RH_EMAILS}")
+app.logger.debug(f"RAW_ADMIN from ENV: {raw_admin!r}")
+app.logger.debug(f"Parsed ADMIN_EMAILS: {ADMIN_EMAILS}")
 
 # --- Autorizados adicionais ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
@@ -103,9 +103,9 @@ def notify_rh(texto_denuncia, protocolo):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user = session.get('user')
+        user   = session.get('user')
         allowed = set(EMAILS_AUTORIZADOS + RH_EMAILS + ADMIN_EMAILS)
-        if not user or user.get('email','').lower() not in allowed:
+        if not user or user['email'].lower() not in allowed:
             flash('Acesso restrito apenas para usuários autorizados.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
@@ -115,7 +115,7 @@ def admin_pin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = session.get('user')
-        if user and user.get('email','').lower() in RH_EMAILS + ADMIN_EMAILS:
+        if user and user['email'].lower() in RH_EMAILS + ADMIN_EMAILS:
             if session.get('pending_pin') or not session.get('admin_verified'):
                 return redirect(url_for('admin_verificacao'))
             return f(*args, **kwargs)
@@ -127,17 +127,17 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- Rotas ---
-@app.route('/admin_verificacao', methods=['GET','POST'])
+@app.route('/admin_verificacao', methods=['GET', 'POST'])
 @login_required
 @admin_pin_required
 def admin_verificacao():
     user = session.get('user')
-    if not user or user.get('email','').lower() not in RH_EMAILS + ADMIN_EMAILS:
+    if not user or user['email'].lower() not in RH_EMAILS + ADMIN_EMAILS:
         flash('Acesso restrito ao RH.', 'danger')
         return redirect(url_for('login'))
     if request.method == 'POST':
-        pin_digitado = request.form.get('pin','').strip()
-        pin_correto  = os.environ.get('ADMIN_PIN','123456').strip()
+        pin_digitado = request.form.get('pin', '').strip()
+        pin_correto  = os.environ.get('ADMIN_PIN', '123456').strip()
         if pin_digitado == pin_correto:
             session.pop('pending_pin', None)
             session['admin_verified'] = True
@@ -150,12 +150,12 @@ def admin_verificacao():
 def index():
     return redirect(url_for('denuncia'))
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         app.logger.debug(f"EMAIL DIGITADO: {email}")
-        if email in EMAILS_AUTORIZADOS + RH_EMAILS + ADMIN_EMAILS:
+        if email in EMAILS_AUTORIZADOS or email in RH_EMAILS or email in ADMIN_EMAILS:
             session['user'] = {'email': email}
             if email in RH_EMAILS + ADMIN_EMAILS:
                 session['pending_pin'] = True
@@ -170,7 +170,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route('/denuncia', methods=['GET','POST'])
+@app.route('/denuncia', methods=['GET', 'POST'])
 @login_required
 def denuncia():
     if request.method == 'POST':
@@ -203,7 +203,7 @@ def denuncia():
         return redirect(url_for('denuncia'))
     return render_template('denuncia.html')
 
-# ... demais rotas inalteradas, incluindo chat, painel do RH, consulta de protocolo etc. ...
+# ... demais rotas inalteradas ...
 
 if __name__ == '__main__':
     app.run(debug=True)
