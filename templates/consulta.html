@@ -1,70 +1,83 @@
-{% extends "base.html" %}
-{% block title %}Consulta de Denúncias{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Consulta de Denúncias</title>
+  <!-- este link carrega seu styles.css customizado -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Consulta de Denúncias</h1>
 
-{% block content %}
-<div class="container mt-5">
-  <h1 class="mb-4">Consulta de Denúncias</h1>
+    <!-- Form de busca -->
+    <form method="post" action="{{ url_for('consulta') }}" class="consulta-form">
+      <input
+        type="text"
+        name="protocolo"
+        placeholder="Digite o protocolo"
+        value="{{ protocolo or '' }}"
+        required
+        style="margin-right: 8px;"
+      >
+      <button type="submit" class="btn">Buscar</button>
+    </form>
 
-  <!-- Busca de protocolo -->
-  <form method="post" action="{{ url_for('consulta') }}" class="form-inline mb-4">
-    <input
-      type="text"
-      name="protocolo"
-      class="form-control mr-2"
-      placeholder="Digite o protocolo"
-      value="{{ protocolo or '' }}"
-      required
-    >
-    <button type="submit" class="btn btn-primary">Buscar</button>
-  </form>
+    {% if denuncia %}
+      <hr>
+      <h2>Protocolo: {{ denuncia.protocolo }}</h2>
 
-  {% if denuncia %}
-    <hr>
+      <!-- Campo de mensagem + anexo -->
+      <form
+        id="chatForm"
+        method="post"
+        action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
+        autocomplete="off"
+        enctype="multipart/form-data"
+      >
+        <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
 
-    <h2 class="mb-3">Protocolo: {{ denuncia.protocolo }}</h2>
-
-    <!-- Chat / Formulário de resposta -->
-    <form
-      id="chatForm"
-      method="post"
-      action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
-      class="chat-form"
-      autocomplete="off"
-      enctype="multipart/form-data"
-    >
-      <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
-
-      <div class="form-group mb-2">
         <input
           type="text"
           name="mensagem"
-          class="form-control"
           placeholder="Digite sua mensagem..."
           maxlength="500"
-          required
+          autocomplete="off"
+          style="width: 100%; margin-bottom: 8px;"
         >
-      </div>
 
-      <div class="form-row align-items-center mb-3">
-        <div class="col-auto">
-          <label class="btn btn-secondary mb-0">
-            Anexar Documento
-            <input type="file" name="anexo" class="d-none" accept="*/*">
-          </label>
+        <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+          <label for="file-upload-user" class="btn-azul">Anexar Documento</label>
+          <input
+            type="file"
+            id="file-upload-user"
+            name="anexo"
+            class="input-file"
+            accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+            onchange="showFilenameUser()"
+            style="display: none;"
+          >
+          <div id="filename-user" style="font-style: italic;"></div>
+
+          <button type="button" class="btn-azul" onclick="abrirGravadorAudio()">
+            Gravar Áudio
+          </button>
         </div>
-        <div class="col-auto">
-          <button type="button" class="btn btn-secondary" onclick="abrirGravadorAudio()">Gravar Áudio</button>
-        </div>
-      </div>
 
-      <button type="submit" class="btn btn-success">Enviar</button>
-    </form>
-  {% endif %}
-</div>
+        <button type="submit" class="btn-verde">Enviar</button>
+      </form>
+    {% endif %}
+  </div>
 
-<script>
-  function abrirGravadorAudio() {
-    alert("Funcionalidade de gravação de áudio aqui!");
-  }
-</script>
-{% endblock %}
+  <script>
+    function showFilenameUser() {
+      const input = document.getElementById('file-upload-user');
+      const label = document.getElementById('filename-user');
+      label.textContent = input.files.length ? input.files[0].name : '';
+    }
+    function abrirGravadorAudio() {
+      alert("Funcionalidade de gravação de áudio aqui!");
+    }
+  </script>
+</body>
+</html>
