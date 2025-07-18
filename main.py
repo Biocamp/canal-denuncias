@@ -24,10 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
-ALLOWED_EXTENSIONS = {
-    'png','jpg','jpeg','gif','pdf','doc','docx','xls','xlsx',
-    'mp3','wav','ogg','mp4','webm','mov'
-}
+ALLOWED_EXTENSIONS = {'png','jpg','jpeg','gif','pdf','doc','docx','xls','xlsx','mp3','wav','ogg','mp4','webm','mov'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # --- Flask-Mail via ENV ---
@@ -39,7 +36,7 @@ app.config.update(
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '').strip(),
 )
 mail = Mail(app)
-db   = SQLAlchemy(app)
+db = SQLAlchemy(app)
 
 # --- Models ---
 class Denuncia(db.Model):
@@ -64,55 +61,53 @@ with app.app_context():
     db.create_all()
 
 # --- Carrega listas de e-mails RH e Admin ---
-raw_rh       = os.environ.get('RH_EMAIL', '')
-RH_EMAILS    = [e.strip().lower() for e in raw_rh.split(',') if e.strip()]
-raw_admin    = os.environ.get('ADMIN_EMAIL', '')
+raw_rh      = os.environ.get('RH_EMAIL', '')
+RH_EMAILS   = [e.strip().lower() for e in raw_rh.split(',') if e.strip()]
+raw_admin   = os.environ.get('ADMIN_EMAIL', '')
 ADMIN_EMAILS = [e.strip().lower() for e in raw_admin.split(',') if e.strip()]
-
 app.logger.debug(f"RAW_RH from ENV: {raw_rh!r}")
 app.logger.debug(f"Parsed RH_EMAILS: {RH_EMAILS}")
-app.logger.debug(f"RAW_ADMIN from ENV: {raw_admin!r}")
-app.logger.debug(f"Parsed ADMIN_EMAILS: {ADMIN_EMAILS}")
 
-# --- Autorizados adicionais ---
+# --- Carrega demais autorizados ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
-    if not os.path.exists(arquivo):
-        return []
+    if not os.path.exists(arquivo): return []
     with open(arquivo, 'r', encoding='utf-8') as f:
         return [linha.strip().lower() for linha in f if linha.strip()]
-
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
 # --- Envio de E-mail ao RH ---
+
 def _send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
 
 def notify_rh(texto_denuncia, protocolo):
     for rh in RH_EMAILS:
-        msg = MailMessage(
-            subject='Nova denúncia recebida',
-            sender=app.config['MAIL_USERNAME'],
-            recipients=[rh],
-            body=f"Uma nova denúncia foi registrada:\n\nProtocolo: {protocolo}\n\n{texto_denuncia}"
-        )
-        Thread(target=_send_async_email, args=(app, msg)).start()
+        if rh:
+            msg = MailMessage(
+                subject='Nova denúncia recebida',
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[rh],
+                body=f"Uma nova denúncia foi registrada:\n\nProtocolo: {protocolo}\n\n{texto_denuncia}"
+            )
+            Thread(target=_send_async_email, args=(app, msg)).start()
 
-# --- Decorators de permissão ---
+# --- Decorators ---
+
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
-        user   = session.get('user')
+    def decorated(*args, **kwargs):
+        user    = session.get('user')
         allowed = set(EMAILS_AUTORIZADOS + RH_EMAILS + ADMIN_EMAILS)
         if not user or user['email'].lower() not in allowed:
             flash('Acesso restrito apenas para usuários autorizados.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated_function
+    return decorated
 
 def admin_pin_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args, **kwargs):
         user = session.get('user')
         if user and user['email'].lower() in RH_EMAILS + ADMIN_EMAILS:
             if session.get('pending_pin') or not session.get('admin_verified'):
@@ -120,140 +115,123 @@ def admin_pin_required(f):
             return f(*args, **kwargs)
         flash('Acesso restrito ao RH.', 'danger')
         return redirect(url_for('login'))
-    return decorated_function
+    return decorated
 
+# --- Helper uploads ---
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- Rotas ---
-@app.route('/admin_verificacao', methods=['GET', 'POST'])
+
+@app.route('/admin_verificacao', methods=['GET','POST'])
 @login_required
-@admin_pin_required
 def admin_verificacao():
     user = session.get('user')
-    if not user or user['email'].lower() not in RH_EMAILS + ADMIN_EMAILS:
-        flash('Acesso restrito ao RH.', 'danger')
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        pin_digitado = request.form.get('pin', '').strip()
-        pin_correto  = os.environ.get('ADMIN_PIN', '123456').strip()
-        if pin_digitado == pin_correto:
-            session.pop('pending_pin', None)
-            session['admin_verified'] = True
-            return redirect(url_for('admin'))
-        flash('PIN incorreto.', 'danger')
+    if not user or user['email'].lower() not in RH_EMAILS+ADMIN_EMAILS:
+        flash('Acesso restrito ao RH.', 'danger'); return redirect(url_for('login'))
+    if request.method=='POST':
+        pin = request.form.get('pin','').strip(); correct = os.environ.get('ADMIN_PIN','123456').strip()
+        if pin==correct:
+            session.pop('pending_pin',None); session['admin_verified']=True; return redirect(url_for('admin'))
+        flash('PIN incorreto.','danger')
     return render_template('admin_verificacao.html')
 
 @app.route('/')
 @login_required
-def index():
-    return redirect(url_for('denuncia'))
+def index(): return redirect(url_for('denuncia'))
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
-    if request.method == 'POST':
+    if request.method=='POST':
         email = request.form['email'].strip().lower()
         app.logger.debug(f"EMAIL DIGITADO: {email}")
+        app.logger.debug(f"RH_EMAILS: {RH_EMAILS}")
+        app.logger.debug(f"ADMIN_EMAILS: {ADMIN_EMAILS}")
         if email in EMAILS_AUTORIZADOS or email in RH_EMAILS or email in ADMIN_EMAILS:
-            session['user'] = {'email': email}
-            if email in RH_EMAILS + ADMIN_EMAILS:
-                session['pending_pin'] = True
-                session.pop('admin_verified', None)
+            session['user']={'email':email}
+            if email in RH_EMAILS+ADMIN_EMAILS:
+                session['pending_pin']=True; session.pop('admin_verified',None)
                 return redirect(url_for('admin_verificacao'))
             return redirect(url_for('denuncia'))
-        flash('E-mail não autorizado.', 'danger')
+        flash('E-mail não autorizado.','danger')
     return render_template('login.html')
 
 @app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
+def logout(): session.clear(); return redirect(url_for('login'))
 
-@app.route('/denuncia', methods=['GET', 'POST'])
+@app.route('/denuncia', methods=['GET','POST'])
 @login_required
 def denuncia():
-    if request.method == 'POST':
-        if not request.form.get('terms'):
-            flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
-            return redirect(url_for('denuncia'))
-        texto = request.form['texto']
-        file  = request.files.get('anexo')
-        anexo_nome = None
+    if request.method=='POST':
+        if not request.form.get('terms'): flash('Você precisa aceitar os termos e condições.','warning'); return redirect(url_for('denuncia'))
+        texto=request.form['texto']; file=request.files.get('anexo'); anexo=None
         if file and file.filename and allowed_file(file.filename):
-            ext = file.filename.rsplit('.', 1)[1].lower()
-            anexo_nome = f"{uuid.uuid4().hex}.{ext}"
-            file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
-        protocolo = secrets.token_hex(6).upper()
-        nova_denuncia = Denuncia(texto=texto, protocolo=protocolo, status='Recebida')
-        db.session.add(nova_denuncia)
-        db.session.commit()
-        if anexo_nome:
-            msg = MensagemChat(
-                denuncia_id=nova_denuncia.id,
-                autor="Usuário",
-                texto="Anexo inicial da denúncia.",
-                anexo=anexo_nome,
-                lida_pelo_rh=False
-            )
-            db.session.add(msg)
-            db.session.commit()
-        notify_rh(texto, protocolo)
-        flash(f'Denúncia enviada com sucesso! Salve seu protocolo: {protocolo}', 'success')
+            ext=file.filename.rsplit('.',1)[1].lower(); anexo=f"{uuid.uuid4().hex}.{ext}"
+            file.save(os.path.join(UPLOAD_FOLDER,anexo))
+        protocolo=secrets.token_hex(6).upper(); d=Denuncia(texto=texto,protocolo=protocolo)
+        db.session.add(d); db.session.commit()
+        if anexo:
+            m=MensagemChat(denuncia_id=d.id,autor='Usuário',texto=None,anexo=anexo,lida_pelo_rh=False)
+            db.session.add(m); db.session.commit()
+        notify_rh(texto,protocolo); flash(f'Denúncia enviada! Protocolo: {protocolo}','success')
         return redirect(url_for('denuncia'))
     return render_template('denuncia.html')
 
-# PAINEL RH/ADMIN
-@app.route('/admin')
+@app.route('/consulta', methods=['GET','POST'])
+def consulta():
+    denuncia=None; msgs=[]; proto=None
+    if request.method=='POST': proto=request.form.get('protocolo','').strip().upper()
+    elif 'protocolo' in request.args: proto=request.args.get('protocolo','').strip().upper()
+    if proto:
+        denuncia=Denuncia.query.filter_by(protocolo=proto).first()
+        if not denuncia: flash('Protocolo não encontrado.','warning')
+        else: msgs=MensagemChat.query.filter_by(denuncia_id=denuncia.id).order_by(MensagemChat.data_hora.asc()).all()
+    return render_template('consulta.html', denuncia=denuncia, mensagens=msgs, protocolo=proto)
+
+@app.route('/chat/<protocolo>', methods=['POST'])
+def chat(protocolo):
+    d=Denuncia.query.filter_by(protocolo=protocolo).first()
+    if not d: flash('Protocolo não existe.','danger'); return redirect(url_for('consulta'))
+    if d.status=='Finalizada': flash('Conversa encerrada.','danger'); return redirect(url_for('consulta',protocolo=protocolo))
+    texto=request.form.get('mensagem','').strip(); file=request.files.get('anexo'); anexo=None
+    if file and file.filename and allowed_file(file.filename):
+        ext=file.filename.rsplit('.',1)[1].lower(); anexo=f"{uuid.uuid4().hex}.{ext}"
+        file.save(os.path.join(UPLOAD_FOLDER,anexo))
+    if texto or anexo:
+        m=MensagemChat(denuncia_id=d.id,autor='Usuário',texto=texto or None,anexo=anexo,lida_pelo_rh=False)
+        db.session.add(m); db.session.commit()
+    return redirect(url_for('consulta',protocolo=protocolo))
+
+@app.route('/chat_arquivo/<filename>')
+def chat_arquivo(filename): return send_from_directory(UPLOAD_FOLDER, filename)
+
+@app.route('/admin', methods=['GET','POST'])
 @login_required
 @admin_pin_required
 def admin():
-    denuncias = Denuncia.query.order_by(Denuncia.data_hora.desc()).all()
-    return render_template('admin.html', denuncias=denuncias)
+    subq=db.session.query(MensagemChat.denuncia_id.label('denuncia_id'), db.func.count().label('novas_msgs'))\
+        .filter(MensagemChat.autor=='Usuário',MensagemChat.lida_pelo_rh==False).group_by(MensagemChat.denuncia_id).subquery()
+    rows=db.session.query(Denuncia,subq.c.novas_msgs).outerjoin(subq,Denuncia.id==subq.c.denuncia_id).order_by(Denuncia.data_hora.desc()).all()
+    denuncias=[r[0] for r in rows]; unread={r[0].protocolo:int(r[1] or 0) for r in rows}
+    return render_template('admin.html',denuncias=denuncias,unread_counts=unread)
 
-# CONSULTA PROTOCOLO
-@app.route('/consulta', methods=['GET', 'POST'])
-def consulta():
-    if request.method == 'POST':
-        protocolo = request.form.get('protocolo', '').strip().upper()
-        denuncia = Denuncia.query.filter_by(protocolo=protocolo).first()
-        if denuncia:
-            return render_template('consulta.html', denuncia=denuncia)
-        else:
-            flash('Protocolo não encontrado.', 'danger')
-    return render_template('consulta.html')
-
-# CHAT DA DENUNCIA
-@app.route('/chat/<protocolo>', methods=['GET', 'POST'])
+@app.route('/admin/denuncia/<protocolo>', methods=['GET','POST'])
 @login_required
-def chat(protocolo):
-    denuncia = Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
-    if request.method == 'POST':
-        texto = request.form['mensagem']
-        file  = request.files.get('anexo')
-        anexo_nome = None
-        if file and file.filename and allowed_file(file.filename):
-            ext = file.filename.rsplit('.', 1)[1].lower()
-            anexo_nome = f"{uuid.uuid4().hex}.{ext}"
-            file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
-        msg = MensagemChat(
-            denuncia_id=denuncia.id,
-            autor=session.get('user', {}).get('email', 'Usuário'),
-            texto=texto,
-            anexo=anexo_nome,
-            lida_pelo_rh=('rh' in session.get('user', {}).get('email', ''))
-        )
-        db.session.add(msg)
-        db.session.commit()
-        flash('Mensagem enviada.', 'success')
-        return redirect(url_for('chat', protocolo=protocolo))
-    mensagens = MensagemChat.query.filter_by(denuncia_id=denuncia.id).order_by(MensagemChat.data_hora.asc()).all()
-    return render_template('chat.html', denuncia=denuncia, mensagens=mensagens)
+@admin_pin_required
+def admin_denuncia(protocolo):
+    d=Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
+    msgs=MensagemChat.query.filter_by(denuncia_id=d.id).order_by(MensagemChat.data_hora.asc()).all()
+    status_msg=None
+    if request.method=='POST' and 'atualizar_status' in request.form:
+        ns=request.form.get('novo_status')
+        if ns in ['Recebida','Em Andamento','Finalizada']: d.status=ns; db.session.commit(); status_msg=f'Status: {ns}'
+    MensagemChat.query.filter_by(denuncia_id=d.id,autor='Usuário',lida_pelo_rh=False).update({'lida_pelo_rh':True}); db.session.commit()
+    if request.method=='POST' and 'mensagem' in request.form and 'atualizar_status' not in request.form:
+        texto=request.form.get('mensagem','').strip(); file=request.files.get('anexo'); fname=None
+        if file and file.filename and allowed_file(file.filename): ext=file.filename.rsplit('.',1)[1]; fname=f"{uuid.uuid4().hex}.{ext}"; file.save(os.path.join(UPLOAD_FOLDER,fname))
+        if texto or fname: nm=MensagemChat(denuncia_id=d.id,autor='RH',texto=texto,anexo=fname,lida_pelo_rh=True); db.session.add(nm); db.session.commit()
+        return redirect(url_for('admin_denuncia',protocolo=protocolo))
+    return render_template('admin_chat.html',denuncia=d,mensagens=msgs,status_msg=status_msg)
 
-# DOWNLOAD DE ANEXOS
-@app.route('/uploads/<nome_arquivo>')
-@login_required
-def download_anexo(nome_arquivo):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], nome_arquivo)
-
-if __name__ == '__main__':
+if __name__=='__main__':
     app.run(debug=True)
