@@ -218,6 +218,29 @@
             margin-top: 4px;
             word-break: break-all;
         }
+        .audio-btn {
+            background: linear-gradient(90deg,#e7f4fd 90%, #d3e6fb 100%);
+            color: #245;
+            border: 1.2px solid #a3bde6;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 1.03rem;
+            font-weight: bold;
+            margin-top: 4px;
+            margin-bottom: 0;
+            cursor: pointer;
+            transition: background .15s;
+            margin-left: 0;
+        }
+        .audio-btn.recording {
+            background: #ffe9e9;
+            color: #d12a2a;
+            border: 1.2px solid #f2b2b2;
+        }
+        .audio-preview {
+            margin-top: 7px;
+            max-width: 96%;
+        }
         .chat-form button {
             background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
             color: #fff;
@@ -294,7 +317,19 @@
                         {{ m.texto }}
                         {% if m.anexo %}
                             <br>
-                            <a href="{{ url_for('chat_arquivo', filename=m.anexo) }}" target="_blank" class="chat-anexo-link">📎 Anexo</a>
+                            {% if m.anexo.endswith('.mp3') or m.anexo.endswith('.wav') or m.anexo.endswith('.ogg') or m.anexo.endswith('.m4a') %}
+                                <audio controls class="audio-preview">
+                                    <source src="{{ url_for('chat_arquivo', filename=m.anexo) }}">
+                                    Seu navegador não suporta áudio.
+                                </audio>
+                            {% elif m.anexo.endswith('.mp4') or m.anexo.endswith('.webm') or m.anexo.endswith('.mov') %}
+                                <video controls class="audio-preview" style="border-radius:10px;">
+                                    <source src="{{ url_for('chat_arquivo', filename=m.anexo) }}">
+                                    Seu navegador não suporta vídeo.
+                                </video>
+                            {% else %}
+                                <a href="{{ url_for('chat_arquivo', filename=m.anexo) }}" target="_blank" class="chat-anexo-link">📎 Anexo</a>
+                            {% endif %}
                         {% endif %}
                         <span class="chat-date">{{ m.data_hora.strftime('%d/%m %H:%M') }}</span>
                     </div>
@@ -312,15 +347,19 @@
                     <span>Anexar<br>Documento</span>
                 </label>
                 <input type="file" id="file-upload-rh" name="anexo" class="input-file"
-                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                       onchange="showFilenameRh()">
+                    accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.mp3,.wav,.ogg,.mp4,.m4a,.webm,.mov"
+                    onchange="showFilenameRh()">
                 <div class="filename" id="filename-rh"></div>
+                <button type="button" class="audio-btn" id="recBtnRh" onclick="toggleRecordingRh()">🎤 Gravar Áudio</button>
+                <audio id="audioPreviewRh" class="audio-preview" style="display:none;" controls></audio>
+                <input type="hidden" id="audioDataRh" name="audio_data">
             </div>
             <button type="submit">Enviar</button>
         </form>
         <a href="{{ url_for('admin') }}" class="voltar-link">Voltar para painel</a>
     </div>
     <script>
+        // Mostra nome do arquivo
         function showFilenameRh() {
             const input = document.getElementById('file-upload-rh');
             const label = document.getElementById('filename-rh');
@@ -328,6 +367,40 @@
                 label.textContent = input.files[0].name;
             } else {
                 label.textContent = '';
+            }
+        }
+
+        // Gravação de áudio (RH)
+        let mediaRecorderRh, audioChunksRh = [];
+        function toggleRecordingRh() {
+            const recBtn = document.getElementById('recBtnRh');
+            const audioPreview = document.getElementById('audioPreviewRh');
+            if (!mediaRecorderRh || mediaRecorderRh.state === "inactive") {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                    mediaRecorderRh = new MediaRecorder(stream);
+                    audioChunksRh = [];
+                    mediaRecorderRh.ondataavailable = e => audioChunksRh.push(e.data);
+                    mediaRecorderRh.onstop = () => {
+                        const audioBlob = new Blob(audioChunksRh, { type: 'audio/webm' });
+                        const url = URL.createObjectURL(audioBlob);
+                        audioPreview.src = url;
+                        audioPreview.style.display = 'block';
+
+                        // Envia para input hidden como base64
+                        let reader = new FileReader();
+                        reader.onloadend = function() {
+                            document.getElementById('audioDataRh').value = reader.result;
+                        }
+                        reader.readAsDataURL(audioBlob);
+                    };
+                    mediaRecorderRh.start();
+                    recBtn.textContent = "⏹️ Parar Gravação";
+                    recBtn.classList.add("recording");
+                });
+            } else {
+                mediaRecorderRh.stop();
+                recBtn.textContent = "🎤 Gravar Áudio";
+                recBtn.classList.remove("recording");
             }
         }
     </script>
