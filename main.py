@@ -20,7 +20,6 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# Agora suportando também audio e vídeo
 ALLOWED_EXTENSIONS = {
     'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx',
     'mp3', 'wav', 'ogg', 'mp4', 'webm', 'mov'
@@ -106,7 +105,6 @@ def admin_pin_required(f):
         user = session.get('user')
         rh_email = os.environ.get('RH_EMAIL', '').lower()
         admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
-        # Precisa estar autenticado e ter passado pelo PIN
         if user and user['email'].lower() in (rh_email, admin_email):
             if session.get('pending_pin') or not session.get('admin_verified'):
                 return redirect(url_for('admin_verificacao'))
@@ -153,6 +151,11 @@ def login():
         email = request.form['email'].lower()
         rh_email = os.environ.get('RH_EMAIL', '').lower()
         admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+        # PRINTS PARA DEBUG
+        print("EMAIL DIGITADO:", email)
+        print("RH_EMAIL do env:", rh_email)
+        print("ADMIN_EMAIL do env:", admin_email)
+        # ---
         if (
             email in EMAILS_AUTORIZADOS
             or email == rh_email
