@@ -310,7 +310,7 @@ def admin():
     rows = db.session.query(
         Denuncia,
         subq.c.novas_msgs
-    ).outerjoin(subq, Denuncia.id == subq.denuncia_id
+    ).outerjoin(subq, Denuncia.id == subq.c.denuncia_id   # <- AQUI ESTÁ O AJUSTE!
     ).order_by(Denuncia.data_hora.desc()).all()
 
     denuncias = [row[0] for row in rows]
