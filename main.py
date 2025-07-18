@@ -25,81 +25,83 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 ALLOWED_EXTENSIONS = {
-    'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx',
-    'mp3', 'wav', 'ogg', 'mp4', 'webm', 'mov'
+    'png','jpg','jpeg','gif','pdf','doc','docx','xls','xlsx',
+    'mp3','wav','ogg','mp4','webm','mov'
 }
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # --- Flask-Mail via ENV ---
 app.config.update(
-    MAIL_SERVER=os.environ.get('MAIL_SERVER', '').strip(),
-    MAIL_PORT=int(os.environ.get('MAIL_PORT', 465)),
-    MAIL_USE_SSL=True,
-    MAIL_USERNAME=os.environ.get('MAIL_USERNAME', '').strip(),
-    MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD', '').strip(),
+    MAIL_SERVER   = os.environ.get('MAIL_SERVER', '').strip(),
+    MAIL_PORT     = int(os.environ.get('MAIL_PORT', 465)),
+    MAIL_USE_SSL  = True,
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '').strip(),
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '').strip(),
 )
 mail = Mail(app)
-db = SQLAlchemy(app)
+db   = SQLAlchemy(app)
 
 # --- Models ---
 class Denuncia(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    texto = db.Column(db.Text, nullable=False)
-    data_hora = db.Column(db.DateTime, server_default=db.func.now())
-    protocolo = db.Column(db.String(20), unique=True, nullable=False)
-    status = db.Column(db.String(30), default='Recebida')
+    id         = db.Column(db.Integer, primary_key=True)
+    texto      = db.Column(db.Text, nullable=False)
+    data_hora  = db.Column(db.DateTime, server_default=db.func.now())
+    protocolo  = db.Column(db.String(20), unique=True, nullable=False)
+    status     = db.Column(db.String(30), default='Recebida')
     observacao = db.Column(db.Text, nullable=True)
 
 class MensagemChat(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    denuncia_id = db.Column(db.Integer, db.ForeignKey('denuncia.id'), nullable=False)
-    autor = db.Column(db.String(30), nullable=False)
-    texto = db.Column(db.Text, nullable=True)
-    data_hora = db.Column(db.DateTime, server_default=db.func.now())
-    anexo = db.Column(db.String(120), nullable=True)
+    id           = db.Column(db.Integer, primary_key=True)
+    denuncia_id  = db.Column(db.Integer, db.ForeignKey('denuncia.id'), nullable=False)
+    autor        = db.Column(db.String(30), nullable=False)
+    texto        = db.Column(db.Text, nullable=True)
+    data_hora    = db.Column(db.DateTime, server_default=db.func.now())
+    anexo        = db.Column(db.String(120), nullable=True)
     lida_pelo_rh = db.Column(db.Boolean, default=False)
-    denuncia = db.relationship('Denuncia', backref=db.backref('mensagens', lazy=True))
+    denuncia     = db.relationship('Denuncia', backref=db.backref('mensagens', lazy=True))
 
 with app.app_context():
     db.create_all()
 
 # --- Carrega listas de e-mails RH e Admin ---
-raw_rh = os.environ.get('RH_EMAIL', '')
-RH_EMAILS = [e.strip().lower() for e in raw_rh.split(',') if e.strip()]
-raw_admin = os.environ.get('ADMIN_EMAIL', '')
+raw_rh       = os.environ.get('RH_EMAIL', '')
+RH_EMAILS    = [e.strip().lower() for e in raw_rh.split(',') if e.strip()]
+raw_admin    = os.environ.get('ADMIN_EMAIL', '')
 ADMIN_EMAILS = [e.strip().lower() for e in raw_admin.split(',') if e.strip()]
-app.logger.debug(f"RAW_RH from ENV: {raw_rh!r}")
-app.logger.debug(f"Parsed RH_EMAILS list: {RH_EMAILS}")
 
-# --- E-mails autorizados adicionais ---
+# DEBUG: mostra o valor cru e a lista
+app.logger.debug(f"RAW_RH from ENV: {raw_rh!r}")
+app.logger.debug(f"Parsed RH_EMAILS: {RH_EMAILS}")
+
+# --- Autorizados adicionais ---
 def carregar_emails_autorizados(arquivo='autorizados.txt'):
     if not os.path.exists(arquivo):
         return []
     with open(arquivo, 'r', encoding='utf-8') as f:
         return [linha.strip().lower() for linha in f if linha.strip()]
+
 EMAILS_AUTORIZADOS = carregar_emails_autorizados()
 
-# --- Funções de Envio de E-mail ao RH ---
+# --- Envio de E-mail ao RH ---
 def _send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
 
 def notify_rh(texto_denuncia, protocolo):
     for rh in RH_EMAILS:
-        if rh:
-            msg = MailMessage(
-                subject='Nova denúncia recebida',
-                sender=app.config['MAIL_USERNAME'],
-                recipients=[rh],
-                body=f"Uma nova denúncia foi registrada:\n\nProtocolo: {protocolo}\n\n{texto_denuncia}"
-            )
-            Thread(target=_send_async_email, args=(app, msg)).start()
+        msg = MailMessage(
+            subject='Nova denúncia recebida',
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[rh],
+            body=f"Uma nova denúncia foi registrada:\n\nProtocolo: {protocolo}\n\n{texto_denuncia}"
+        )
+        Thread(target=_send_async_email, args=(app, msg)).start()
 
-# --- Decorators de Permissão ---
+# --- Decorators de permissão ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user = session.get('user')
+        user   = session.get('user')
         allowed = set(EMAILS_AUTORIZADOS + RH_EMAILS + ADMIN_EMAILS)
         if not user or user['email'].lower() not in allowed:
             flash('Acesso restrito apenas para usuários autorizados.', 'warning')
@@ -119,7 +121,6 @@ def admin_pin_required(f):
         return redirect(url_for('login'))
     return decorated_function
 
-# --- Helper para Uploads ---
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -134,7 +135,7 @@ def admin_verificacao():
         return redirect(url_for('login'))
     if request.method == 'POST':
         pin_digitado = request.form.get('pin', '').strip()
-        pin_correto = os.environ.get('ADMIN_PIN', '123456').strip()
+        pin_correto  = os.environ.get('ADMIN_PIN', '123456').strip()
         if pin_digitado == pin_correto:
             session.pop('pending_pin', None)
             session['admin_verified'] = True
@@ -177,7 +178,7 @@ def denuncia():
             flash('Você precisa aceitar os termos e condições para prosseguir.', 'warning')
             return redirect(url_for('denuncia'))
         texto = request.form['texto']
-        file = request.files.get('anexo')
+        file  = request.files.get('anexo')
         anexo_nome = None
         if file and file.filename and allowed_file(file.filename):
             ext = file.filename.rsplit('.', 1)[1].lower()
@@ -188,7 +189,8 @@ def denuncia():
         db.session.add(nova_denuncia)
         db.session.commit()
         if anexo_nome:
-            msg = MensagemChat(denuncia_id=nova_denuncia.id, autor="Usuário", texto="Anexo inicial da denúncia.", anexo=anexo_nome, lida_pelo_rh=False)
+            msg = MensagemChat(denuncia_id=nova_denuncia.id, autor="Usuário",
+                               texto="Anexo inicial da denúncia.", anexo=anexo_nome, lida_pelo_rh=False)
             db.session.add(msg)
             db.session.commit()
         notify_rh(texto, protocolo)
@@ -196,7 +198,7 @@ def denuncia():
         return redirect(url_for('denuncia'))
     return render_template('denuncia.html')
 
-# ... demais rotas inalteradas
+# ... demais rotas inalteradas ...
 
 if __name__ == '__main__':
     app.run(debug=True)
