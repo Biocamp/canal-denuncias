@@ -73,6 +73,26 @@
             font-size:1rem;
             border:1.2px solid #b1efcb;
         }
+        /* --- NOVO BLOCO --- */
+        .status-denuncia {
+            background:#f0f7fe;
+            border-radius:12px;
+            padding:15px 18px;
+            margin-bottom:20px;
+            border:1.5px solid #c2dbf7;
+        }
+        .status-denuncia strong {
+            color: #183f80;
+            font-size: 1.07em;
+        }
+        .status-denuncia-texto {
+            margin-top:8px;
+            color:#20305c;
+            font-size:1.08rem;
+            line-height: 1.45;
+            white-space: pre-line;
+        }
+        /* --- FIM NOVO BLOCO --- */
         .chat-container {
             background: #f8fafc;
             border: 1.5px solid #e4e9f2;
@@ -260,6 +280,16 @@
         {% if status_msg %}
             <div class="status-sucesso">{{ status_msg }}</div>
         {% endif %}
+
+        <!-- NOVO BLOCO: Denúncia original -->
+        <div class="status-denuncia">
+            <strong>Denúncia registrada:</strong>
+            <div class="status-denuncia-texto">
+                {{ denuncia.texto }}
+            </div>
+        </div>
+        <!-- FIM NOVO BLOCO -->
+
         <div class="chat-container clearfix">
             {% if mensagens %}
                 {% for m in mensagens %}
