@@ -69,7 +69,6 @@ RH_EMAILS    = [e.strip().lower() for e in raw_rh.split(',') if e.strip()]
 raw_admin    = os.environ.get('ADMIN_EMAIL', '')
 ADMIN_EMAILS = [e.strip().lower() for e in raw_admin.split(',') if e.strip()]
 
-# DEBUG: mostra o valor cru e a lista
 app.logger.debug(f"RAW_RH from ENV: {raw_rh!r}")
 app.logger.debug(f"Parsed RH_EMAILS: {RH_EMAILS}")
 app.logger.debug(f"RAW_ADMIN from ENV: {raw_admin!r}")
@@ -203,7 +202,58 @@ def denuncia():
         return redirect(url_for('denuncia'))
     return render_template('denuncia.html')
 
-# ... demais rotas inalteradas ...
+# PAINEL RH/ADMIN
+@app.route('/admin')
+@login_required
+@admin_pin_required
+def admin():
+    denuncias = Denuncia.query.order_by(Denuncia.data_hora.desc()).all()
+    return render_template('admin.html', denuncias=denuncias)
+
+# CONSULTA PROTOCOLO
+@app.route('/consulta', methods=['GET', 'POST'])
+def consulta():
+    if request.method == 'POST':
+        protocolo = request.form.get('protocolo', '').strip().upper()
+        denuncia = Denuncia.query.filter_by(protocolo=protocolo).first()
+        if denuncia:
+            return render_template('consulta.html', denuncia=denuncia)
+        else:
+            flash('Protocolo não encontrado.', 'danger')
+    return render_template('consulta.html')
+
+# CHAT DA DENUNCIA
+@app.route('/chat/<protocolo>', methods=['GET', 'POST'])
+@login_required
+def chat(protocolo):
+    denuncia = Denuncia.query.filter_by(protocolo=protocolo).first_or_404()
+    if request.method == 'POST':
+        texto = request.form['mensagem']
+        file  = request.files.get('anexo')
+        anexo_nome = None
+        if file and file.filename and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            anexo_nome = f"{uuid.uuid4().hex}.{ext}"
+            file.save(os.path.join(UPLOAD_FOLDER, anexo_nome))
+        msg = MensagemChat(
+            denuncia_id=denuncia.id,
+            autor=session.get('user', {}).get('email', 'Usuário'),
+            texto=texto,
+            anexo=anexo_nome,
+            lida_pelo_rh=('rh' in session.get('user', {}).get('email', ''))
+        )
+        db.session.add(msg)
+        db.session.commit()
+        flash('Mensagem enviada.', 'success')
+        return redirect(url_for('chat', protocolo=protocolo))
+    mensagens = MensagemChat.query.filter_by(denuncia_id=denuncia.id).order_by(MensagemChat.data_hora.asc()).all()
+    return render_template('chat.html', denuncia=denuncia, mensagens=mensagens)
+
+# DOWNLOAD DE ANEXOS
+@app.route('/uploads/<nome_arquivo>')
+@login_required
+def download_anexo(nome_arquivo):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], nome_arquivo)
 
 if __name__ == '__main__':
     app.run(debug=True)
