@@ -34,6 +34,11 @@ app.config.update(
 mail = Mail(app)
 db = SQLAlchemy(app)
 
+# --- Função utilitária para múltiplos e-mails ---
+def get_email_list(var_name):
+    value = os.environ.get(var_name, '')
+    return [e.strip().lower() for e in value.split(',') if e.strip()]
+
 # --- Modelos ---
 class Denuncia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -71,13 +76,13 @@ def _send_async_email(app, msg):
         mail.send(msg)
 
 def notify_rh(texto_denuncia, protocolo):
-    rh_email = os.environ.get('RH_EMAIL')
-    if not rh_email:
+    rh_emails = get_email_list('RH_EMAIL')
+    if not rh_emails:
         return
     msg = MailMessage(
         subject='Nova denúncia recebida',
         sender=app.config['MAIL_USERNAME'],
-        recipients=[rh_email],
+        recipients=rh_emails,
         body=f"Uma nova denúncia foi registrada:\n\nProtocolo: {protocolo}\n\n{texto_denuncia}"
     )
     Thread(target=_send_async_email, args=(app, msg)).start()
@@ -87,8 +92,12 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = session.get('user')
-        if not user or user['email'].lower() not in EMAILS_AUTORIZADOS and user['email'].lower() not in (
-            os.environ.get('RH_EMAIL', '').lower(), os.environ.get('ADMIN_EMAIL', '').lower()):
+        email = user['email'].lower() if user else ''
+        if not user or (
+            email not in EMAILS_AUTORIZADOS
+            and email not in get_email_list('RH_EMAIL')
+            and email not in get_email_list('ADMIN_EMAIL')
+        ):
             flash('Acesso restrito apenas para usuários autorizados.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
@@ -102,9 +111,10 @@ def allowed_file(filename):
 @login_required
 def admin_verificacao():
     user = session.get('user')
-    rh_email = os.environ.get('RH_EMAIL', '').lower()
-    admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
-    if not user or user['email'].lower() not in (rh_email, admin_email):
+    email = user['email'].lower() if user else ''
+    rh_emails = get_email_list('RH_EMAIL')
+    admin_emails = get_email_list('ADMIN_EMAIL')
+    if not user or (email not in rh_emails and email not in admin_emails):
         flash('Acesso restrito ao RH.', 'danger')
         return redirect(url_for('login'))
 
@@ -129,16 +139,16 @@ def index():
 def login():
     if request.method == 'POST':
         email = request.form['email'].lower()
-        rh_email = os.environ.get('RH_EMAIL', '').lower()
-        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+        rh_emails = get_email_list('RH_EMAIL')
+        admin_emails = get_email_list('ADMIN_EMAIL')
         if (
             email in EMAILS_AUTORIZADOS
-            or email == rh_email
-            or email == admin_email
+            or email in rh_emails
+            or email in admin_emails
         ):
             session['user'] = {'email': email}
             # se for RH ou Admin, exige o PIN!
-            if email == rh_email or email == admin_email:
+            if email in rh_emails or email in admin_emails:
                 session['pending_pin'] = True
                 session.pop('admin_verified', None)
                 return redirect(url_for('admin_verificacao'))
@@ -263,10 +273,11 @@ def admin_pin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = session.get('user')
-        rh_email = os.environ.get('RH_EMAIL', '').lower()
-        admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
+        email = user['email'].lower() if user else ''
+        rh_emails = get_email_list('RH_EMAIL')
+        admin_emails = get_email_list('ADMIN_EMAIL')
         # Precisa estar autenticado e ter passado pelo PIN
-        if user and user['email'].lower() in (rh_email, admin_email):
+        if user and (email in rh_emails or email in admin_emails):
             if session.get('pending_pin') or not session.get('admin_verified'):
                 return redirect(url_for('admin_verificacao'))
             return f(*args, **kwargs)
@@ -280,9 +291,10 @@ def admin_pin_required(f):
 @admin_pin_required
 def admin():
     user = session.get('user')
-    rh_email = os.environ.get('RH_EMAIL', '').lower()
-    admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
-    if not user or user['email'].lower() not in (rh_email, admin_email):
+    email = user['email'].lower() if user else ''
+    rh_emails = get_email_list('RH_EMAIL')
+    admin_emails = get_email_list('ADMIN_EMAIL')
+    if not user or (email not in rh_emails and email not in admin_emails):
         flash('Acesso restrito ao RH.', 'danger')
         return redirect(url_for('login'))
 
@@ -298,7 +310,7 @@ def admin():
     rows = db.session.query(
         Denuncia,
         subq.c.novas_msgs
-    ).outerjoin(subq, Denuncia.id == subq.c.denuncia_id
+    ).outerjoin(subq, Denuncia.id == subq.denuncia_id
     ).order_by(Denuncia.data_hora.desc()).all()
 
     denuncias = [row[0] for row in rows]
@@ -311,9 +323,10 @@ def admin():
 @admin_pin_required
 def admin_denuncia(protocolo):
     user = session.get('user')
-    rh_email = os.environ.get('RH_EMAIL', '').lower()
-    admin_email = os.environ.get('ADMIN_EMAIL', '').lower()
-    if not user or user['email'].lower() not in (rh_email, admin_email):
+    email = user['email'].lower() if user else ''
+    rh_emails = get_email_list('RH_EMAIL')
+    admin_emails = get_email_list('ADMIN_EMAIL')
+    if not user or (email not in rh_emails and email not in admin_emails):
         flash('Acesso restrito ao RH.', 'danger')
         return redirect(url_for('login'))
 
