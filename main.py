@@ -220,10 +220,13 @@ def chat(protocolo):
     texto = request.form.get('mensagem','').strip()
     file  = request.files.get('anexo')
     anexo = None
+
+    # Aceita qualquer arquivo (inclui áudio .webm do gravador)
     if file and file.filename and allowed_file(file.filename):
         ext   = file.filename.rsplit('.',1)[1].lower()
         anexo = f"{uuid.uuid4().hex}.{ext}"
         file.save(os.path.join(UPLOAD_FOLDER, anexo))
+
     if texto or anexo:
         m = MensagemChat(denuncia_id=d.id, autor='Usuário', texto=texto or None, anexo=anexo, lida_pelo_rh=False)
         db.session.add(m)
@@ -268,10 +271,12 @@ def admin_denuncia(protocolo):
     MensagemChat.query.filter_by(denuncia_id=d.id, autor='Usuário', lida_pelo_rh=False)\
         .update({'lida_pelo_rh': True})
     db.session.commit()
+    # Chat do RH, aceita texto + anexo (inclui áudio do gravador)
     if request.method=='POST' and 'mensagem' in request.form and 'atualizar_status' not in request.form:
         texto = request.form.get('mensagem','').strip()
         file  = request.files.get('anexo')
         fname = None
+
         if file and file.filename and allowed_file(file.filename):
             ext   = file.filename.rsplit('.',1)[1].lower()
             fname = f"{uuid.uuid4().hex}.{ext}"

@@ -224,7 +224,7 @@
           if (audioBlob) {
             e.preventDefault();
             const formData = new FormData(chatForm);
-            formData.append('anexo', audioBlob, 'audio.webm');
+            formData.append('audio_blob', URL.createObjectURL(audioBlob));
             fetch(chatForm.action, { method: 'POST', body: formData })
               .then(() => window.location.reload());
           }
