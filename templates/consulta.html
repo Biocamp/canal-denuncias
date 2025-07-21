@@ -50,22 +50,22 @@
       border-color: #5ea4fd;
     }
     .btn-clean {
-      min-width: 85px;
-      height: 34px;
-      padding: 0 18px;
-      border-radius: 16px;
-      font-size: 1.05rem;
-      font-weight: 500;
       background: linear-gradient(90deg, #5ca9fb 0%, #6372ff 100%);
       color: #fff;
       border: none;
-      transition: background 0.17s, box-shadow 0.17s;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 500;
       box-shadow: 0 1px 5px 0 #b7e1fb10;
       cursor: pointer;
+      transition: background 0.17s, box-shadow 0.17s;
       outline: none;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 0 18px;
+      height: 38px;
+      min-width: 0;
     }
     .btn-clean:active { background: #4154d4; }
     .denuncia-bloco {
@@ -155,17 +155,19 @@
     .input-file-wrap {
       position: relative;
       flex: 1;
-      min-width: 80px;
-      max-width: 130px;
+      min-width: 0;
+      max-width: 220px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
+      justify-content: center;
     }
-    .input-file { opacity: 0; width: 100%; height: 34px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
+    .input-file { opacity: 0; width: 100%; height: 38px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
     .label-file.btn-clean { width: 100%; }
     .filename { font-size: .93rem; color: #3770a7; margin-top: 4px; word-break: break-all; }
     .btn-verde {
-      width:100%; background: linear-gradient(90deg,#3cd77a 80%,#49b87a 100%);
+      width: 100%;
+      background: linear-gradient(90deg,#3cd77a 80%,#49b87a 100%);
       color:#fff; font-weight:600; font-size:1.08rem; border:none; border-radius:15px; padding:11px 0;
       box-shadow:0 1px 8px #38a06716; transition:background .17s, box-shadow .17s; cursor:pointer;
       display: flex; align-items: center; justify-content: center; margin-top: 8px;
@@ -220,11 +222,40 @@
       color: #4154d4;
       margin-right: 10px;
     }
+    .button-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 9px;
+      justify-content: space-between;
+    }
+    .file-btn, .audio-btn {
+      min-width: 156px;
+      padding: 0 18px;
+      height: 38px;
+      font-size: 1rem;
+      white-space: nowrap;
+      border-radius: 14px;
+      box-shadow: 0 1px 5px 0 #b7e1fb10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      background: linear-gradient(90deg, #5ca9fb 0%, #6372ff 100%);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background 0.17s, box-shadow 0.17s;
+    }
+    .file-btn:active, .audio-btn:active {
+      background: #4154d4;
+    }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 600px) {
       .container { padding: 14px 5vw 16px 5vw; }
-      .btn-clean, .btn-verde, .btn-cancel, .btn-stop { font-size: 0.95rem !important; }
+      .btn-clean, .btn-verde, .btn-cancel, .btn-stop, .file-btn, .audio-btn { font-size: 0.95rem !important; }
       .protocolo-form { flex-direction: column; gap: 7px; }
+      .button-row { flex-direction: column; gap: 8px; }
+      .file-btn, .audio-btn { width: 100%; min-width: 0; }
     }
   </style>
 </head>
@@ -267,19 +298,19 @@
       <form id="chatForm" method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" enctype="multipart/form-data" autocomplete="off" class="chat-form">
         <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
         <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
-        <div style="display: flex; gap: 10px; margin-bottom: 7px;">
+
+        <!-- NOVO bloco de botões lado a lado -->
+        <div class="button-row">
           <div class="input-file-wrap">
-            <label for="file-upload-user" class="label-file btn-clean">Anexar Documento</label>
+            <label for="file-upload-user" class="label-file btn-clean file-btn">📎 Anexar Documento</label>
             <input type="file" id="file-upload-user" name="anexo" class="input-file"
               accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
               onchange="showFilenameUser()">
             <div class="filename" id="filename-user"></div>
           </div>
-          <div id="audio-section" style="flex:2;">
-            <button type="button" class="btn-clean" id="btn-gravar-audio" onclick="abrirGravadorAudio()" style="width:100%;">
-              <span style="font-size:1.08em; margin-right:6px;">🎤</span> Gravar Áudio
-            </button>
-          </div>
+          <button type="button" class="btn-clean audio-btn" id="btn-gravar-audio" onclick="abrirGravadorAudio()">
+            🎤 Gravar Áudio
+          </button>
         </div>
         <!-- Barra de Gravação estilo WhatsApp -->
         <div id="audio-bar" style="display:none;"></div>
