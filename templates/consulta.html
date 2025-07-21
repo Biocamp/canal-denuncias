@@ -1,100 +1,234 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Consulta de Denúncias</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="UTF-8">
+    <title>Consulta de Denúncias</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: Arial, sans-serif;
+        }
+        .card-custom {
+            max-width: 520px;
+            margin: 64px auto;
+            padding: 44px 38px 32px 38px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px #00306118;
+            position: relative;
+        }
+        h2 {
+            text-align: center;
+            color: #1a355e;
+            font-weight: 700;
+            font-size: 1.7rem;
+            margin-bottom: 20px;
+        }
+        .consulta-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+            justify-content: center;
+        }
+        .consulta-form input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            padding: 11px 12px;
+            border-radius: 8px;
+            border: 1.2px solid #dbe2ee;
+            font-size: 1.07rem;
+            box-shadow: 0 1.5px 7px #eaf3ff18;
+            transition: border .18s;
+        }
+        .consulta-form input[type="text"]:focus {
+            border-color: #6ea8fe;
+            outline: none;
+        }
+        .btn, button[type="submit"] {
+            background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%);
+            color: #fff;
+            font-weight: 700;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 11px;
+            font-size: 1.09rem;
+            cursor: pointer;
+            box-shadow: 0 2px 10px #6ea8fe29;
+            transition: background .19s, box-shadow .19s;
+        }
+        .btn:hover, button[type="submit"]:hover {
+            background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
+            box-shadow: 0 4px 22px #6ea8fe33;
+        }
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            border: 1px solid #e2eaf5;
+            background: #f8fbff;
+            padding: 8px;
+            box-shadow: 0 1px 8px #eaf3ff11;
+        }
+        .chat-messages > div {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.03rem;
+        }
+        .chat-messages > div:last-child {
+            border-bottom: none;
+        }
+        .chat-messages strong {
+            color: #29599a;
+        }
+        .chat-messages small {
+            color: #666;
+        }
+        form#chatForm input[type="text"] {
+            width: 100%;
+            border-radius: 9px;
+            border: 1.2px solid #dbe2ee;
+            padding: 11px 12px;
+            font-size: 1.06rem;
+            margin-bottom: 8px;
+            box-shadow: 0 1.5px 7px #eaf3ff18;
+        }
+        form#chatForm input[type="text"]:focus {
+            border-color: #6ea8fe;
+            outline: none;
+        }
+        #filename-user {
+            font-style: italic;
+            font-size: 0.98rem;
+            color: #4a6577;
+        }
+        .btn[for] {
+            cursor: pointer;
+            background: linear-gradient(90deg,#b1c7fd 80%,#6ea8fe 100%);
+        }
+        hr {
+            margin: 28px 0 18px 0;
+            border: none;
+            border-top: 1.5px solid #e6ecf3;
+        }
+        .msg-flash {
+            text-align: center;
+            margin: 18px 0 6px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: #e6f1ff;
+            color: #29599a;
+            border: 1px solid #b1d0f7;
+            font-size: 1.08rem;
+        }
+        @media (max-width: 600px) {
+            .card-custom { padding: 14px 5vw 16px 5vw; }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Consulta de Denúncias</h1>
+    <div class="card-custom">
+        <h2>Consulta de Denúncias</h2>
 
-    <!-- Form de busca -->
-    <form method="post" action="{{ url_for('consulta') }}" class="consulta-form">
-      <input
-        type="text"
-        name="protocolo"
-        placeholder="Digite o protocolo"
-        value="{{ protocolo or '' }}"
-        required
-        style="margin-right:8px;"
-      >
-      <button type="submit" class="btn">Buscar</button>
-    </form>
+        <!-- Mensagens de alerta -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="msg-flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-    {% if denuncia %}
-      <hr>
-      <h2>Protocolo: {{ denuncia.protocolo }}</h2>
+        <!-- Formulário de busca por protocolo -->
+        <form method="post" action="{{ url_for('consulta') }}" class="consulta-form">
+            <input
+                type="text"
+                name="protocolo"
+                placeholder="Digite o protocolo"
+                value="{{ protocolo or '' }}"
+                required
+            >
+            <button type="submit" class="btn">Buscar</button>
+        </form>
 
-      <!-- Histórico de mensagens -->
-      <div class="chat-messages" style="max-height:300px; overflow-y:auto; margin-bottom:16px;">
-        {% for msg in mensagens %}
-          <div style="padding:8px; border-bottom:1px solid #eee;">
-            <div>
-              <strong>{{ msg.autor }}:</strong>
-              <small style="color:#666;">{{ msg.data_hora.strftime('%d/%m/%Y %H:%M') }}</small>
+        {% if denuncia %}
+            <hr>
+            <h2 style="font-size:1.21rem; color:#225; text-align:left;">Protocolo: {{ denuncia.protocolo }}</h2>
+
+            <!-- Histórico de mensagens -->
+            <div class="chat-messages">
+                {% for msg in mensagens %}
+                <div>
+                    <div>
+                        <strong>{{ msg.autor }}:</strong>
+                        <small>{{ msg.data_hora.strftime('%d/%m/%Y %H:%M') }}</small>
+                    </div>
+                    {% if msg.texto %}
+                        <p>{{ msg.texto }}</p>
+                    {% endif %}
+                    {% if msg.anexo %}
+                        <p>
+                            <a href="{{ url_for('chat_arquivo', filename=msg.anexo) }}" target="_blank">
+                                Download do arquivo
+                            </a>
+                        </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
-            {% if msg.texto %}
-              <p>{{ msg.texto }}</p>
-            {% endif %}
-            {% if msg.anexo %}
-              <p>
-                <a href="{{ url_for('chat_arquivo', filename=msg.anexo) }}" target="_blank">
-                  Download do arquivo
-                </a>
-              </p>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </div>
 
-      <!-- Form de nova mensagem -->
-      <form
-        id="chatForm"
-        method="post"
-        action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
-        enctype="multipart/form-data"
-        autocomplete="off"
-      >
-        <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
+            <!-- Formulário de nova mensagem -->
+            <form
+                id="chatForm"
+                method="post"
+                action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
+                enctype="multipart/form-data"
+                autocomplete="off"
+            >
+                <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
+                <input
+                    type="text"
+                    name="mensagem"
+                    placeholder="Digite sua mensagem..."
+                    maxlength="500"
+                    autocomplete="off"
+                >
+                <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center;">
+                    <label for="file-upload-user" class="btn" style="padding:7px 16px; font-size:1rem; width:auto;">
+                        Anexar Documento
+                    </label>
+                    <input
+                        type="file"
+                        id="file-upload-user"
+                        name="anexo"
+                        style="display:none;"
+                        accept="*/*"
+                        onchange="showFilenameUser()"
+                    >
+                    <span id="filename-user"></span>
+                    <button type="button" class="btn" style="padding:7px 16px; font-size:1rem; width:auto; background:linear-gradient(90deg,#b7e3cc 80%,#49b87a 100%);" onclick="abrirGravadorAudio()">
+                        Gravar Áudio
+                    </button>
+                </div>
+                <button type="submit" class="btn" style="margin-top:4px;">Enviar</button>
+            </form>
+        {% endif %}
+    </div>
 
-        <input
-          type="text"
-          name="mensagem"
-          placeholder="Digite sua mensagem..."
-          maxlength="500"
-          autocomplete="off"
-          style="width:100%; margin-bottom:8px;"
-        >
+    <footer style="text-align:center; color:#888; margin-top:24px;">
+        Canal de Denúncias | Biocamp
+    </footer>
 
-        <div style="display:flex; gap:12px; margin-bottom:8px;">
-          <label for="file-upload-user" class="btn">Anexar Documento</label>
-          <input
-            type="file"
-            id="file-upload-user"
-            name="anexo"
-            style="display:none;"
-            accept="*/*"
-            onchange="showFilenameUser()"
-          >
-          <span id="filename-user" style="font-style:italic;"></span>
-          <button type="button" class="btn" onclick="abrirGravadorAudio()">Gravar Áudio</button>
-        </div>
-
-        <button type="submit" class="btn">Enviar</button>
-      </form>
-    {% endif %}
-  </div>
-
-  <script>
-    function showFilenameUser() {
-      const input = document.getElementById('file-upload-user');
-      const label = document.getElementById('filename-user');
-      label.textContent = input.files.length ? input.files[0].name : '';
-    }
-    function abrirGravadorAudio() {
-      alert("Funcionalidade de gravação de áudio aqui!");
-    }
-  </script>
+    <script>
+        function showFilenameUser() {
+            const input = document.getElementById('file-upload-user');
+            const label = document.getElementById('filename-user');
+            label.textContent = input.files.length ? input.files[0].name : '';
+        }
+        function abrirGravadorAudio() {
+            alert("Funcionalidade de gravação de áudio aqui!");
+        }
+    </script>
 </body>
 </html>
