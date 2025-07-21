@@ -5,13 +5,13 @@
     <title>Chat RH – Canal de Denúncias</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background: #f5f7fa; font-family: Arial, sans-serif; }
+        body { background: #f5f7fa; font-family: 'Segoe UI', Arial, sans-serif; }
         .card {
             max-width: 520px;
             margin: 64px auto;
             padding: 42px 36px 32px 36px;
             background: #fff;
-            border-radius: 20px;
+            border-radius: 22px;
             box-shadow: 0 4px 24px #00306118;
             position: relative;
         }
@@ -119,26 +119,41 @@
         .chat-date { font-size: 0.93em; color: #86a; margin-left: 8px; opacity: .85; }
         .chat-anexo-link { display: inline-block; margin: 7px 0 0 0; font-size: 0.96em; color: #3fa889; text-decoration: underline; }
         .clearfix::after { content: ""; display: table; clear: both; }
-        /* Botões azuis e verde padrão */
-        .btn-azul {
-            background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%) !important;
-            color: #fff !important;
-            font-weight: bold !important;
-            border: none !important;
-            border-radius: 11px !important;
-            padding: 11px 18px !important;
-            font-size: 1rem !important;
-            box-shadow: 0 2px 8px #6ea8fe26 !important;
-            cursor: pointer !important;
-            min-width: 0 !important;
-            width: auto !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin-bottom: 0 !important;
+        /* Botões grandes iguais ao modelo anterior */
+        .button-row {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 9px;
+            justify-content: space-between;
         }
-        .btn-azul:hover {
-            background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%) !important;
+        .btn-big-wrap {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            min-width: 0;
+        }
+        .btn-big {
+            width: 100%;
+            min-width: 0;
+            padding: 0 0;
+            height: 44px;
+            font-size: 1.07rem;
+            font-weight: 600;
+            justify-content: center;
+            letter-spacing: .01em;
+            display: flex;
+            align-items: center;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #5ca9fb 0%, #6372ff 100%);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 1px 5px 0 #b7e1fb10;
+            transition: background 0.17s, box-shadow 0.17s;
+        }
+        .btn-big:active {
+            background: #4154d4;
         }
         .btn-verde {
             width:100%;
@@ -147,7 +162,7 @@
             font-weight:bold;
             font-size:1.1rem;
             border:none;
-            border-radius:11px;
+            border-radius:15px;
             padding:14px 0;
             box-shadow:0 2px 8px #38a06732;
             transition:background .2s, box-shadow .2s;
@@ -156,6 +171,7 @@
             align-items: center;
             justify-content: center;
             margin-top: 8px;
+            min-height: 40px;
         }
         .btn-verde:hover {
             background: linear-gradient(90deg,#38a067 85%,#49b87a 100%);
@@ -163,23 +179,19 @@
         /* Input e campos do chat */
         .chat-form input[type="text"] {
             width: 100%;
-            border-radius: 9px;
+            border-radius: 12px;
             border: 1.2px solid #dbe2ee;
             padding: 11px 12px;
             font-size: 1.06rem;
             margin-bottom: 8px;
             box-shadow: 0 1.5px 7px #eaf3ff18;
             outline: none;
+            background: #fafdff;
         }
         .chat-form input[type="text"]:focus { border-color: #6ea8fe; }
-        /* Botão de anexo escondido */
-        #file-upload-rh { display:none; }
-        #filename-rh {
-            font-style: italic;
-            font-size: 0.98rem;
-            color: #4a6577;
-            margin-right:10px;
-        }
+        .input-file { opacity: 0; width: 100%; height: 44px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
+        .label-file.btn-big { width: 100%; }
+        .filename { font-size: .93rem; color: #3770a7; margin-top: 4px; word-break: break-all; }
         .voltar-link {
             display: block;
             margin: 28px auto 0 auto;
@@ -191,6 +203,7 @@
         @media (max-width: 700px) {
             .card { padding: 14px 5vw 16px 5vw; }
             h3 { font-size: 1.15rem; }
+            .button-row { flex-direction: column; gap: 10px; }
         }
     </style>
 </head>
@@ -242,17 +255,22 @@
         <!-- FORMULÁRIO CHAT RH -->
         {% if denuncia.status != 'Finalizada' %}
         <form method="post" enctype="multipart/form-data" class="chat-form" id="chatFormRh" style="margin-top:0;">
-            <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off" style="margin-bottom:8px;">
-            <div style="display:flex; gap:12px; margin-bottom:8px;">
-                <label for="file-upload-rh" class="btn-azul" style="padding:11px 18px; font-size:1rem; border-radius:11px; min-width:0; width:auto;">
-                    Anexar Documento
-                </label>
-                <input type="file" id="file-upload-rh" name="anexo" accept="*/*" onchange="showFilenameRh()">
-                <span id="filename-rh"></span>
-                <button type="button" class="btn-azul" style="padding:11px 18px; font-size:1rem; border-radius:11px; min-width:0; width:auto; background:linear-gradient(90deg,#b7e3cc 80%,#49b87a 100%);" onclick="abrirGravadorAudio()">
-                    Gravar Áudio
-                </button>
+            <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
+            <!-- Botões grandes lado a lado -->
+            <div class="button-row">
+                <div class="btn-big-wrap">
+                    <label for="file-upload-rh" class="label-file btn-big">📎 Anexar Documento</label>
+                    <input type="file" id="file-upload-rh" name="anexo" class="input-file"
+                        accept="*/*" onchange="showFilenameRh()">
+                    <div class="filename" id="filename-rh"></div>
+                </div>
+                <div class="btn-big-wrap">
+                    <button type="button" class="btn-big" id="btn-gravar-audio" onclick="abrirGravadorAudio()">
+                        🎤 Gravar Áudio
+                    </button>
+                </div>
             </div>
+            <!-- Se for implementar barra de gravação, coloque aqui -->
             <button type="submit" class="btn-verde" style="margin-top:4px;">Enviar</button>
         </form>
         {% endif %}
