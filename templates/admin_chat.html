@@ -192,6 +192,24 @@
         .input-file { opacity: 0; width: 100%; height: 44px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
         .label-file.btn-big { width: 100%; }
         .filename { font-size: .93rem; color: #3770a7; margin-top: 4px; word-break: break-all; }
+        .audio-bar {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          background: #f3f8ff;
+          border-radius: 16px;
+          padding: 10px 14px;
+          margin-bottom: 10px;
+          box-shadow: 0 1px 6px 0 #b4c8e512;
+          border: 1.1px solid #dde5f1;
+          animation: fadeIn 0.23s;
+        }
+        .audio-timer {
+          font-family: monospace;
+          font-size: 1.10rem;
+          color: #4154d4;
+          margin-right: 10px;
+        }
         .voltar-link {
             display: block;
             margin: 28px auto 0 auto;
@@ -200,6 +218,7 @@
             font-size: 1.12rem;
             text-decoration: underline;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @media (max-width: 700px) {
             .card { padding: 14px 5vw 16px 5vw; }
             h3 { font-size: 1.15rem; }
@@ -270,7 +289,8 @@
                     </button>
                 </div>
             </div>
-            <!-- Se for implementar barra de gravação, coloque aqui -->
+            <!-- Barra de Gravação estilo WhatsApp -->
+            <div id="audio-bar" style="display:none;"></div>
             <button type="submit" class="btn-verde" style="margin-top:4px;">Enviar</button>
         </form>
         {% endif %}
@@ -282,9 +302,98 @@
             const label = document.getElementById('filename-rh');
             label.textContent = input.files.length ? input.files[0].name : '';
         }
-        function abrirGravadorAudio() {
-            alert("Funcionalidade de gravação de áudio aqui!");
+        // ===== Gravação de Áudio estilo WhatsApp =====
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob = null;
+        let gravando = false;
+        let gravaInterval = null;
+        let gravaTempo = 0;
+
+        function formatTime(sec) {
+          const m = String(Math.floor(sec/60)).padStart(2,'0');
+          const s = String(sec%60).padStart(2,'0');
+          return `${m}:${s}`;
         }
+
+        function abrirGravadorAudio() {
+          if (gravando) return;
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+              mediaRecorder = new MediaRecorder(stream);
+              audioChunks = [];
+              audioBlob = null;
+              gravando = true;
+              gravaTempo = 0;
+              document.getElementById('btn-gravar-audio').style.display = 'none';
+              mostrarBarraGravacao();
+              mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+              mediaRecorder.onstop = () => {
+                gravando = false;
+                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                mostrarAudioPlayer();
+              };
+              mediaRecorder.start();
+              gravaInterval = setInterval(() => {
+                gravaTempo++;
+                document.getElementById('audio-timer').textContent = formatTime(gravaTempo);
+                if (gravaTempo >= 120) pararGravacao();
+              }, 1000);
+            });
+        }
+        function mostrarBarraGravacao() {
+          const audioBar = document.getElementById('audio-bar');
+          audioBar.innerHTML = `
+            <span id="audio-timer" class="audio-timer">00:00</span>
+            <button type="button" class="btn-big" style="background:#fb5656;margin-left:10px;" onclick="cancelarGravacao()">❌ Cancelar</button>
+            <button type="button" class="btn-big" style="background:#49b87a;margin-left:7px;" onclick="pararGravacao()">✅ Parar</button>
+          `;
+          audioBar.style.display = 'flex';
+        }
+        function mostrarAudioPlayer() {
+          clearInterval(gravaInterval);
+          const audioBar = document.getElementById('audio-bar');
+          audioBar.innerHTML = `
+            <audio id="audio-player" controls style="width:100%; margin-right:6px; border-radius:11px; background:#fafcff;"></audio>
+            <button type="button" class="btn-big" style="background:#fb5656;" onclick="removerAudio()">Excluir Áudio</button>
+          `;
+          const player = document.getElementById('audio-player');
+          player.src = URL.createObjectURL(audioBlob);
+          document.getElementById('audio-bar').style.display = 'flex';
+          document.getElementById('btn-gravar-audio').style.display = '';
+        }
+        function pararGravacao() {
+          if (mediaRecorder && gravando) {
+            mediaRecorder.stop();
+          }
+        }
+        function cancelarGravacao() {
+          if (mediaRecorder && gravando) {
+            mediaRecorder.stop();
+            audioChunks = [];
+            audioBlob = null;
+          }
+          clearInterval(gravaInterval);
+          gravando = false;
+          document.getElementById('audio-bar').style.display = 'none';
+          document.getElementById('btn-gravar-audio').style.display = '';
+        }
+        function removerAudio() {
+          audioBlob = null;
+          audioChunks = [];
+          document.getElementById('audio-bar').style.display = 'none';
+        }
+        // Envio via FormData se áudio
+        document.getElementById('chatFormRh').onsubmit = function(e){
+          if (audioBlob) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('anexo', audioBlob, 'audio.webm');
+            fetch(form.action, { method: 'POST', body: formData })
+              .then(resp => window.location.reload());
+          }
+        };
     </script>
 </body>
 </html>
