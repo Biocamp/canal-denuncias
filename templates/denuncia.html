@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Canal de Denúncias</title>
+    <title>Consulta de Denúncias</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
@@ -25,221 +25,190 @@
             font-size: 1.7rem;
             margin-bottom: 20px;
         }
-        textarea {
-            width: 100%;
-            min-height: 120px;
-            border-radius: 10px;
+        .consulta-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+            justify-content: center;
+        }
+        .consulta-form input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            padding: 11px 12px;
+            border-radius: 8px;
             border: 1.2px solid #dbe2ee;
-            padding: 14px 13px;
-            margin-bottom: 26px;
-            resize: vertical;
             font-size: 1.07rem;
             box-shadow: 0 1.5px 7px #eaf3ff18;
             transition: border .18s;
         }
-        textarea:focus {
+        .consulta-form input[type="text"]:focus {
             border-color: #6ea8fe;
+            outline: none;
         }
-        button, .btn-custom {
-            width: 100%;
+        .btn, button[type="submit"] {
             background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%);
             color: #fff;
             font-weight: 700;
-            padding: 15px;
+            padding: 10px 24px;
             border: none;
-            border-radius: 12px;
-            font-size: 1.15rem;
-            margin-top: 10px;
+            border-radius: 11px;
+            font-size: 1.09rem;
             cursor: pointer;
             box-shadow: 0 2px 10px #6ea8fe29;
             transition: background .19s, box-shadow .19s;
         }
-        button:hover, .btn-custom:hover {
+        .btn:hover, button[type="submit"]:hover {
             background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
             box-shadow: 0 4px 22px #6ea8fe33;
         }
-        label {
-            margin-left: 3px;
-            font-size: 1rem;
-        }
-        .terms {
-            margin-top: 16px;
-            margin-bottom: 12px;
-            font-size: 1.01rem;
-        }
-        .btn-acompanhar {
-            display: block;
-            background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
-            color: #fff !important;
-            padding: 16px 22px;
-            border-radius: 11px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.14rem;
-            margin: 23px auto 0 auto;
-            box-shadow: 0 2px 10px #49b87a22;
-            width: 93%;
-            text-align: center;
-            transition: background .18s, box-shadow .18s;
-        }
-        .btn-acompanhar:hover {
-            background: linear-gradient(90deg,#38a067 80%,#49b87a 100%);
-            color: #eaf2ff !important;
-            box-shadow: 0 4px 24px #49b87a34;
-        }
-        .msg-flash {
-            text-align: center;
-            margin: 18px 0 6px 0;
-            padding: 10px;
-            border-radius: 8px;
-            background: #e6f1ff;
-            color: #29599a;
-            border: 1px solid #b1d0f7;
-        }
-        .sair-link {
-            display: block;
-            margin: 28px auto 0 auto;
-            width: fit-content;
-            text-align: center;
-            color: #3770a7;
-            text-decoration: underline;
-            font-size: 1.10rem;
-        }
-        /* Modal styles */
-        .modal-bg {
-            display: none;
-            position: fixed;
-            z-index: 99;
-            left: 0; top: 0; width: 100vw; height: 100vh;
-            background: #232a3847;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-bg.active {
-            display: flex;
-        }
-        .modal-box {
-            background: #fff;
-            border-radius: 15px;
-            max-width: 520px;
-            width: 95vw;
-            box-shadow: 0 2px 24px #0003;
-            padding: 36px 28px 30px 28px;
-            position: relative;
-            animation: pop .18s cubic-bezier(.47,1.64,.41,.8);
-        }
-        .modal-title {
-            text-align: center;
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #26354a;
-            margin-bottom: 12px;
-        }
-        .modal-content {
-            font-size: 1.05rem;
-            color: #273a47;
-            margin-bottom: 16px;
-            max-height: 350px;
+        .chat-messages {
+            max-height: 300px;
             overflow-y: auto;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            border: 1px solid #e2eaf5;
+            background: #f8fbff;
+            padding: 8px;
+            box-shadow: 0 1px 8px #eaf3ff11;
         }
-        .modal-close {
-            position: absolute;
-            right: 18px;
-            top: 12px;
-            font-size: 1.8rem;
-            color: #444b;
+        .chat-messages > div {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.03rem;
+        }
+        .chat-messages > div:last-child {
+            border-bottom: none;
+        }
+        .chat-messages strong {
+            color: #29599a;
+        }
+        .chat-messages small {
+            color: #666;
+        }
+        form#chatForm input[type="text"] {
+            width: 100%;
+            border-radius: 9px;
+            border: 1.2px solid #dbe2ee;
+            padding: 11px 12px;
+            font-size: 1.06rem;
+            margin-bottom: 8px;
+            box-shadow: 0 1.5px 7px #eaf3ff18;
+        }
+        form#chatForm input[type="text"]:focus {
+            border-color: #6ea8fe;
+            outline: none;
+        }
+        #filename-user {
+            font-style: italic;
+            font-size: 0.98rem;
+            color: #4a6577;
+        }
+        .btn[for] {
             cursor: pointer;
+            background: linear-gradient(90deg,#b1c7fd 80%,#6ea8fe 100%);
         }
-        .modal-close:hover { color: #000b; }
-        @keyframes pop {
-            0% { transform: scale(.93);}
-            100% { transform: scale(1);}
+        hr {
+            margin: 28px 0 18px 0;
+            border: none;
+            border-top: 1.5px solid #e6ecf3;
         }
         @media (max-width: 600px) {
             .card-custom { padding: 14px 5vw 16px 5vw; }
-            .btn-acompanhar { width: 100%; font-size: 1rem; }
         }
     </style>
 </head>
 <body>
     <div class="card-custom">
-        <h2>Canal de Denúncias</h2>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="msg-flash">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <form method="POST" enctype="multipart/form-data">
-            <label for="texto"><b>Digite sua denúncia:</b></label>
-            <textarea name="texto" id="texto" required></textarea>
-            <div style="margin-bottom:20px;margin-top:10px;">
-                <label for="anexo"><b>Anexo:</b></label>
-                <input type="file" name="anexo" id="anexo" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
-            </div>
-            <div class="terms">
-                <input type="checkbox" name="terms" id="terms" required>
-                <label for="terms">
-                    Li e aceito os
-                    <a href="#" id="open-termos">termos e condições</a>
-                </label>
-            </div>
-            <button type="submit">Enviar</button>
+        <h2>Consulta de Denúncias</h2>
+        <!-- Formulário de busca por protocolo -->
+        <form method="post" action="{{ url_for('consulta') }}" class="consulta-form">
+            <input
+                type="text"
+                name="protocolo"
+                placeholder="Digite o protocolo"
+                value="{{ protocolo or '' }}"
+                required
+            >
+            <button type="submit" class="btn">Buscar</button>
         </form>
-        <a href="{{ url_for('consulta') }}" class="btn-acompanhar">Acompanhar denúncia pelo número de protocolo</a>
-        <a href="{{ url_for('logout') }}" class="sair-link">Sair</a>
-    </div>
-    <!-- Modal de Termos -->
-    <div id="modal-termos" class="modal-bg">
-        <div class="modal-box">
-            <span class="modal-close" onclick="fecharTermos()">&times;</span>
-            <div class="modal-title">Termos e Condições</div>
-            <div class="modal-content">
-                <!-- Conteúdo igual antes -->
-                <h3 style="margin-bottom:10px;">Termo de Ciência e Aceite – Canal de Denúncias</h3>
-                <p>
-                  A Biocamp Laboratórios Ltda. mantém ativo um Canal de Denúncias 24 horas, disponível para colaboradores.<br>
-                  Por ele, você pode relatar, com segurança e confidencialidade, condutas como:
-                </p>
-                <ul>
-                  <li>Assédio;</li>
-                  <li>Discriminação;</li>
-                  <li>Fraudes;</li>
-                  <li>Corrupção;</li>
-                  <li>Conflitos de interesse;</li>
-                  <li>Riscos psicossociais (NR-01);</li>
-                  <li>Qualquer violação ao Código de Conduta ou normas internas;</li>
-                </ul>
-                <p><b>Declaro que compreendi e aceito que:</b></p>
-                <ul>
-                  <li>Este canal de denúncias destina-se exclusivamente ao recebimento de relatos de condutas consideradas irregulares, ilícitas, antiéticas, assédio, discriminação, violação de normas internas ou legais, bem como quaisquer práticas contrárias ao Código de Conduta da empresa.</li>
-                  <li>Todas as denúncias registradas neste canal serão tratadas com absoluta confidencialidade e encaminhadas para análise pelo setor de Recursos Humanos, que tomará as medidas cabíveis conforme a legislação vigente e as políticas internas da empresa.</li>
-                  <li>O denunciante pode optar por se identificar ou permanecer anônimo. Em qualquer hipótese, não será possível editar ou excluir a denúncia ou os anexos após o envio, garantindo a integridade do processo.</li>
-                  <li>A qualquer momento, o denunciante poderá acompanhar o andamento da denúncia pelo número de protocolo gerado após o envio. O canal não se destina ao envio de sugestões, reclamações sobre procedimentos internos, ou assuntos alheios à finalidade do canal.</li>
-                  <li>É vedado o uso deste canal para denúncias falsas, de má-fé ou com o objetivo de prejudicar terceiros injustamente. A constatação de uso indevido sujeitará o responsável às sanções administrativas e legais cabíveis.</li>
-                  <li><b>Ao prosseguir, o denunciante declara ter ciência e concordar integralmente com estes termos e condições de uso do canal de denúncias.</b></li>
-                </ul>
+
+        {% if denuncia %}
+            <hr>
+            <h2 style="font-size:1.21rem; color:#225;">Protocolo: {{ denuncia.protocolo }}</h2>
+
+            <!-- Histórico de mensagens -->
+            <div class="chat-messages">
+                {% for msg in mensagens %}
+                <div>
+                    <div>
+                        <strong>{{ msg.autor }}:</strong>
+                        <small>{{ msg.data_hora.strftime('%d/%m/%Y %H:%M') }}</small>
+                    </div>
+                    {% if msg.texto %}
+                        <p>{{ msg.texto }}</p>
+                    {% endif %}
+                    {% if msg.anexo %}
+                        <p>
+                            <a href="{{ url_for('chat_arquivo', filename=msg.anexo) }}" target="_blank">
+                                Download do arquivo
+                            </a>
+                        </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
-        </div>
+
+            <!-- Formulário de nova mensagem -->
+            <form
+                id="chatForm"
+                method="post"
+                action="{{ url_for('chat', protocolo=denuncia.protocolo) }}"
+                enctype="multipart/form-data"
+                autocomplete="off"
+            >
+                <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
+                <input
+                    type="text"
+                    name="mensagem"
+                    placeholder="Digite sua mensagem..."
+                    maxlength="500"
+                    autocomplete="off"
+                >
+                <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center;">
+                    <label for="file-upload-user" class="btn" style="padding:7px 16px; font-size:1rem; width:auto;">
+                        Anexar Documento
+                    </label>
+                    <input
+                        type="file"
+                        id="file-upload-user"
+                        name="anexo"
+                        style="display:none;"
+                        accept="*/*"
+                        onchange="showFilenameUser()"
+                    >
+                    <span id="filename-user"></span>
+                    <button type="button" class="btn" style="padding:7px 16px; font-size:1rem; width:auto; background:linear-gradient(90deg,#b7e3cc 80%,#49b87a 100%);" onclick="abrirGravadorAudio()">
+                        Gravar Áudio
+                    </button>
+                </div>
+                <button type="submit" class="btn" style="margin-top:4px;">Enviar</button>
+            </form>
+        {% endif %}
     </div>
+
     <footer style="text-align:center; color:#888; margin-top:24px;">
         Canal de Denúncias | Biocamp
     </footer>
+
     <script>
-        document.getElementById('open-termos').onclick = function(e){
-            e.preventDefault();
-            document.getElementById('modal-termos').classList.add('active');
-        };
-        function fecharTermos() {
-            document.getElementById('modal-termos').classList.remove('active');
+        function showFilenameUser() {
+            const input = document.getElementById('file-upload-user');
+            const label = document.getElementById('filename-user');
+            label.textContent = input.files.length ? input.files[0].name : '';
         }
-        document.addEventListener('keydown', function(e){
-            if (e.key === "Escape") fecharTermos();
-        });
-        document.getElementById('modal-termos').onclick = function(e){
-            if (e.target === this) fecharTermos();
-        };
+        function abrirGravadorAudio() {
+            alert("Funcionalidade de gravação de áudio aqui!");
+        }
     </script>
 </body>
 </html>
