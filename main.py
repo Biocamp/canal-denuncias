@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger().info("🚩 APP_VERSION: consulta-v2 🚩")  # <<< marcador de versão
+logging.getLogger().info("🚩 APP_VERSION: consulta-v2 🚩")
 
 # --- Configurações de Segurança e Banco de Dados ---
 app.secret_key = os.environ.get('FLASK_SECRET', 'segredosuperseguro@123').strip()
@@ -169,7 +169,7 @@ def denuncia():
     if request.method == 'POST':
         if not request.form.get('terms'):
             flash('Você precisa aceitar os termos e condições.','warning')
-            return redirect(url_for('denuncia'))
+            return render_template('denuncia.html')
         texto = request.form['texto']
         file  = request.files.get('anexo')
         anexo = None
@@ -186,8 +186,8 @@ def denuncia():
             db.session.add(m)
             db.session.commit()
         notify_rh(texto, protocolo)
-        flash(f'Denúncia enviada! Protocolo: {protocolo}','success')
-        return redirect(url_for('denuncia'))
+        flash('Denúncia enviada com sucesso! Anote o protocolo abaixo.', 'success')
+        return render_template('denuncia.html', protocolo=protocolo)
     return render_template('denuncia.html')
 
 @app.route('/consulta', methods=['GET','POST'])
