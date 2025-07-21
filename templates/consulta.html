@@ -61,6 +61,18 @@
             background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%);
             box-shadow: 0 4px 22px #6ea8fe33;
         }
+        .denuncia-inicial {
+            margin-bottom: 18px;
+            padding: 16px 14px;
+            border-radius: 11px;
+            background: #f2f8fe;
+            border: 1.5px solid #b1d0f7;
+            color: #204160;
+            font-size: 1.1rem;
+        }
+        .denuncia-inicial b {
+            color: #1a355e;
+        }
         .chat-messages {
             max-height: 300px;
             overflow-y: auto;
@@ -154,7 +166,17 @@
 
         {% if denuncia %}
             <hr>
-            <h2 style="font-size:1.21rem; color:#225; text-align:left;">Protocolo: {{ denuncia.protocolo }}</h2>
+            <h2 style="font-size:1.21rem; color:#225; text-align:left; margin-bottom:10px;">
+                Protocolo: {{ denuncia.protocolo }}
+            </h2>
+
+            <!-- Bloco do relato inicial da denúncia -->
+            <div class="denuncia-inicial">
+                <b>Denúncia relatada em {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}:</b>
+                <div style="margin-top:7px; white-space:pre-wrap;">
+                    {{ denuncia.texto }}
+                </div>
+            </div>
 
             <!-- Histórico de mensagens -->
             <div class="chat-messages">
