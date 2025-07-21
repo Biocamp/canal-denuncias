@@ -5,6 +5,7 @@
     <title>Chat RH – Canal de Denúncias</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        /* ...mesmo CSS já usado antes... */
         body { background: #f5f7fa; font-family: 'Segoe UI', Arial, sans-serif; }
         .card { max-width: 520px; margin: 64px auto; padding: 42px 36px 32px 36px;
             background: #fff; border-radius: 22px; box-shadow: 0 4px 24px #00306118; position: relative; }
@@ -138,7 +139,9 @@
             {% endif %}
             <div class="clearfix"></div>
         </div>
+
         {% if denuncia.status != 'Finalizada' %}
+        <!-- FORMULÁRIO CHAT RH -->
         <form method="post" enctype="multipart/form-data" class="chat-form" id="chatFormRh" style="margin-top:0;">
             <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
             <div class="button-row">
@@ -149,12 +152,12 @@
                     <div class="filename" id="filename-rh"></div>
                 </div>
                 <div class="btn-big-wrap">
-                    <button type="button" class="btn-big" id="btn-gravar-audio" onclick="abrirGravadorAudio()">
+                    <button type="button" class="btn-big" id="btn-gravar-audio" onclick="abrirGravadorAudioRh()">
                          Gravar Áudio
                     </button>
                 </div>
             </div>
-            <div id="audio-bar" style="display:none;"></div>
+            <div id="audio-bar-rh" style="display:none;"></div>
             <button type="submit" class="btn-verde" style="margin-top:4px;">Enviar</button>
         </form>
         {% else %}
@@ -170,58 +173,67 @@
             const label = document.getElementById('filename-rh');
             label.textContent = input.files.length ? input.files[0].name : '';
         }
-        // ÁUDIO ENVIO FUNCIONAL
-        let mediaRecorder, audioChunks = [], audioBlob = null, audioTimerInterval;
-        const audioBar = document.getElementById('audio-bar');
-        const chatForm = document.getElementById('chatFormRh');
-        function abrirGravadorAudio() {
-          if (mediaRecorder && mediaRecorder.state === "recording") return;
+
+        // ========= JS para gravação de áudio no painel RH =========
+        let mediaRecorderRh, audioChunksRh = [], audioBlobRh = null;
+        const audioBarRh = document.getElementById('audio-bar-rh');
+        const btnGravarAudioRh = document.getElementById('btn-gravar-audio');
+        const chatFormRh = document.getElementById('chatFormRh');
+
+        function abrirGravadorAudioRh() {
+          if (mediaRecorderRh && mediaRecorderRh.state === "recording") return;
           navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-              audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-              exibirBarraAudio();
+            mediaRecorderRh = new MediaRecorder(stream);
+            audioChunksRh = [];
+            mediaRecorderRh.ondataavailable = e => audioChunksRh.push(e.data);
+            mediaRecorderRh.onstop = () => {
+              audioBlobRh = new Blob(audioChunksRh, { type: 'audio/webm' });
+              exibirBarraAudioRh();
             };
-            mediaRecorder.start();
-            exibirBarraAudio(true);
+            mediaRecorderRh.start();
+            exibirBarraAudioRh(true);
           });
         }
-        function exibirBarraAudio(gravar = false) {
+
+        function exibirBarraAudioRh(gravar = false) {
           if (gravar) {
-            audioBar.innerHTML = `
+            audioBarRh.innerHTML = `
               <span>Gravando áudio...</span>
-              <button type="button" onclick="pararGravacao()">Parar</button>
-              <button type="button" onclick="cancelarAudio()">Cancelar</button>
+              <button type="button" onclick="pararGravacaoRh()">Parar</button>
+              <button type="button" onclick="cancelarAudioRh()">Cancelar</button>
             `;
-          } else if (audioBlob) {
-            audioBar.innerHTML = `
-              <audio controls style="vertical-align:middle; max-width:70%;"><source src="${URL.createObjectURL(audioBlob)}"></audio>
-              <button type="button" onclick="cancelarAudio()">Excluir</button>
+          } else if (audioBlobRh) {
+            audioBarRh.innerHTML = `
+              <audio controls style="vertical-align:middle; max-width:70%;"><source src="${URL.createObjectURL(audioBlobRh)}"></audio>
+              <button type="button" onclick="cancelarAudioRh()">Excluir</button>
             `;
           }
-          audioBar.style.display = "flex";
+          audioBarRh.style.display = "flex";
         }
-        function pararGravacao() {
-          if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
+
+        function pararGravacaoRh() {
+          if (mediaRecorderRh && mediaRecorderRh.state === "recording") mediaRecorderRh.stop();
         }
-        function cancelarAudio() {
-          audioBlob = null; audioChunks = [];
-          audioBar.style.display = "none";
-          audioBar.innerHTML = "";
+
+        function cancelarAudioRh() {
+          audioBlobRh = null; audioChunksRh = [];
+          audioBarRh.style.display = "none";
+          audioBarRh.innerHTML = "";
         }
-        if(chatForm){
-          chatForm.onsubmit = function(e){
-            if (audioBlob) {
-              e.preventDefault();
-              const formData = new FormData(chatForm);
-              formData.append('anexo', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
-              fetch(chatForm.action, { method: 'POST', body: formData })
-                .then(() => window.location.reload());
-            }
-          };
-        }
+
+        chatFormRh.onsubmit = function(e){
+          if (audioBlobRh) {
+            e.preventDefault();
+            const formData = new FormData(chatFormRh);
+            formData.delete('anexo');
+            formData.append('anexo', new File([audioBlobRh], 'audio.webm', { type: 'audio/webm' }));
+            fetch(chatFormRh.action, {
+              method: 'POST',
+              body: formData
+            })
+            .then(r => { window.location.reload(); });
+          }
+        };
     </script>
 </body>
 </html>
