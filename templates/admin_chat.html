@@ -5,8 +5,9 @@
     <title>Chat RH – Canal de Denúncias</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        /* ...seu CSS igual já usado... */
-        body { background: #f5f7fa; font-family: 'Segoe UI', Arial, sans-serif; }
+        /* ...mantenha seu CSS como estava, pode copiar do anterior ... */
+        body { background: #f5f7fa; font-family: Arial, sans-serif; }
+        /* ... (restante do seu CSS igual consulta) ... */
         .card { max-width: 520px; margin: 64px auto; padding: 42px 36px 32px 36px;
             background: #fff; border-radius: 22px; box-shadow: 0 4px 24px #00306118; position: relative; }
         h3 { text-align: center; color: #1a355e; font-size: 1.7rem; font-weight: 700; margin-bottom: 10px; letter-spacing: .01em; }
@@ -141,6 +142,7 @@
         </div>
 
         {% if denuncia.status != 'Finalizada' %}
+        <!-- FORMULÁRIO CHAT RH -->
         <form method="post" enctype="multipart/form-data" class="chat-form" id="chatFormRh" style="margin-top:0;">
             <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
             <div class="button-row">
@@ -162,75 +164,75 @@
         {% else %}
           <div class="denuncia-finalizada-msg">
             <b>Denúncia finalizada.</b><br>
+            Em caso de dúvidas, entre em contato com o RH.
           </div>
         {% endif %}
         <a href="{{ url_for('admin') }}" class="voltar-link">Voltar para painel</a>
     </div>
     <script>
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let audioBlob = null;
+        function showFilenameRh() {
+            const input = document.getElementById('file-upload-rh');
+            const label = document.getElementById('filename-rh');
+            label.textContent = input.files.length ? input.files[0].name : '';
+        }
 
-    function showFilenameRh() {
-      const input = document.getElementById('file-upload-rh');
-      const label = document.getElementById('filename-rh');
-      label.textContent = input && input.files.length ? input.files[0].name : '';
-    }
+        // ============= ÁUDIO - MESMO JS DA BARRA FUNCIONAL ============
+        let mediaRecorder, audioChunks = [], audioBlob = null;
+        const audioBar = document.getElementById('audio-bar');
+        const btnGravarAudio = document.getElementById('btn-gravar-audio');
+        const chatForm = document.getElementById('chatFormRh');
 
-    function abrirGravadorAudio() {
-      if (mediaRecorder && mediaRecorder.state === "recording") return;
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-          document.getElementById('audio-bar').style.display = 'flex';
-          document.getElementById('audio-bar').innerHTML = `
-            <span id="audio-status" style="color:#4154d4;font-weight:600;">● Gravando...</span>
-            <button type="button" id="btn-parar" style="padding:6px 18px; margin-left:18px; border-radius:10px; border:none; background:#e35a5a; color:#fff;font-weight:600;cursor:pointer;">Parar</button>
-            <button type="button" id="btn-cancelar" style="padding:6px 18px; margin-left:7px; border-radius:10px; border:none; background:#aaa; color:#fff;font-weight:600;cursor:pointer;">Cancelar</button>
-          `;
-          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-          mediaRecorder.onstop = () => {
-            audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            document.getElementById('audio-bar').innerHTML = `
-              <audio id="audio-player" controls style="width:75%;vertical-align:middle;"></audio>
-              <button type="button" id="btn-excluir-audio" style="padding:7px 18px; margin-left:12px; border-radius:10px; border:none; background:#d53c3c; color:#fff;font-weight:600;cursor:pointer;">Excluir</button>
-            `;
-            document.getElementById('audio-player').src = URL.createObjectURL(audioBlob);
-            document.getElementById('btn-excluir-audio').onclick = function() {
-              audioBlob = null;
-              document.getElementById('audio-bar').style.display = 'none';
-              document.getElementById('audio-bar').innerHTML = '';
+        function abrirGravadorAudio() {
+          if (mediaRecorder && mediaRecorder.state === "recording") return;
+          navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+              audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              exibirBarraAudio();
             };
-          };
-          document.getElementById('btn-parar').onclick = function() { mediaRecorder.stop(); };
-          document.getElementById('btn-cancelar').onclick = function() {
-            mediaRecorder.stop();
-            audioBlob = null;
-            document.getElementById('audio-bar').style.display = 'none';
-            document.getElementById('audio-bar').innerHTML = '';
-          };
-          mediaRecorder.start();
-          setTimeout(() => {
-            if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
-          }, 120000); // 2min máx
-        });
-    }
+            mediaRecorder.start();
+            exibirBarraAudio(true);
+          });
+        }
 
-    document.addEventListener("DOMContentLoaded", function() {
-      const chatForm = document.getElementById('chatFormRh');
-      if (chatForm) {
+        function exibirBarraAudio(gravar = false) {
+          if (gravar) {
+            audioBar.innerHTML = `
+              <span>Gravando áudio...</span>
+              <button type="button" onclick="pararGravacao()">Parar</button>
+              <button type="button" onclick="cancelarAudio()">Cancelar</button>
+            `;
+          } else if (audioBlob) {
+            audioBar.innerHTML = `
+              <audio controls style="vertical-align:middle; max-width:70%;"><source src="${URL.createObjectURL(audioBlob)}"></audio>
+              <button type="button" onclick="cancelarAudio()">Excluir</button>
+            `;
+          }
+          audioBar.style.display = "flex";
+        }
+
+        function pararGravacao() {
+          if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
+        }
+
+        function cancelarAudio() {
+          audioBlob = null; audioChunks = [];
+          audioBar.style.display = "none";
+          audioBar.innerHTML = "";
+        }
+
         chatForm.onsubmit = function(e){
           if (audioBlob) {
             e.preventDefault();
             const formData = new FormData(chatForm);
-            formData.append('audio_blob', URL.createObjectURL(audioBlob));
+            // <<--- ESTA LINHA GARANTE QUE O FLASK RECONHEÇA O ÁUDIO COMO ARQUIVO
+            formData.append('anexo', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
             fetch(chatForm.action, { method: 'POST', body: formData })
               .then(() => window.location.reload());
           }
         };
-      }
-    });
     </script>
 </body>
 </html>
