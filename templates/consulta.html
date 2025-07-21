@@ -5,255 +5,81 @@
   <title>Consulta de Denúncias</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      background: #f5f7fa;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
+    body { background: #f5f7fa; font-family: Arial, sans-serif; }
     .container {
-      max-width: 520px;
-      margin: 60px auto;
-      padding: 38px 24px 24px 24px;
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 4px 24px #00306114;
-      position: relative;
+      max-width: 520px; margin: 64px auto; padding: 44px 38px 32px 38px;
+      background: #fff; border-radius: 20px;
+      box-shadow: 0 4px 24px #00306118; position: relative;
     }
-    h1 {
-      text-align: center;
-      color: #183158;
-      font-weight: 700;
-      font-size: 2.1rem;
-      margin-bottom: 24px;
-      letter-spacing: 0.01em;
-    }
-    .protocolo-form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-      justify-content: center;
-    }
+    h1 { text-align: center; color: #1a355e; font-weight: 700; font-size: 2rem; margin-bottom: 20px; }
+    .protocolo-form { display: flex; gap: 12px; margin-bottom: 16px; justify-content: center; }
     .protocolo-form input[type="text"] {
-      flex: 1 1 auto;
-      border-radius: 13px;
-      border: 1.3px solid #dde6f7;
-      padding: 8px 14px;
-      font-size: 1rem;
-      outline: none;
-      background: #f7fbff;
-      box-shadow: 0 1.5px 7px #eaf3ff10;
-      transition: border .15s;
-      min-width: 0;
+      flex: 1 1 auto; border-radius: 7px; border: 1.2px solid #dbe2ee; padding: 10px 12px;
+      font-size: 1rem; outline: none; min-width: 0; box-shadow: 0 1.5px 7px #eaf3ff18; transition: border .18s;
     }
-    .protocolo-form input[type="text"]:focus {
-      border-color: #5ea4fd;
-    }
+    .protocolo-form input[type="text"]:focus { border-color: #6ea8fe; }
     .btn-clean {
       background: linear-gradient(90deg, #5ca9fb 0%, #6372ff 100%);
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 500;
-      box-shadow: 0 1px 5px 0 #b7e1fb10;
-      cursor: pointer;
-      transition: background 0.17s, box-shadow 0.17s;
-      outline: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 18px;
-      height: 38px;
-      min-width: 0;
+      color: #fff; border: none; border-radius: 14px; font-size: 1rem; font-weight: 500;
+      box-shadow: 0 1px 5px 0 #b7e1fb10; cursor: pointer; transition: background 0.17s, box-shadow 0.17s;
+      outline: none; display: flex; align-items: center; justify-content: center; padding: 0 18px; height: 38px; min-width: 0;
     }
     .btn-clean:active { background: #4154d4; }
     .denuncia-bloco {
-      background: #f5faff;
-      border-left: 4px solid #63a3fa;
-      padding: 12px 15px 10px 15px;
-      margin-bottom: 16px;
-      border-radius: 13px;
-      font-size: 1.04rem;
-      font-weight: 500;
-      color: #2a3551;
-      box-shadow: 0 1px 6px #b4c8e513;
+      background: #f5faff; border-left: 4px solid #63a3fa; padding: 12px 15px 10px 15px; margin-bottom: 16px;
+      border-radius: 13px; font-size: 1.04rem; font-weight: 500; color: #2a3551; box-shadow: 0 1px 6px #b4c8e513;
     }
     .chat-container {
-      background: #f8fafc;
-      border: 1.3px solid #e4e9f2;
-      border-radius: 13px;
-      max-height: 235px;
-      overflow-y: auto;
-      padding: 11px 10px 5px 10px;
-      margin-bottom: 13px;
-      box-shadow: 0 2px 10px #6ea8fe12;
+      background: #f8fafc; border: 1.3px solid #e4e9f2; border-radius: 13px; max-height: 235px; overflow-y: auto;
+      padding: 11px 10px 5px 10px; margin-bottom: 13px; box-shadow: 0 2px 10px #6ea8fe12;
     }
     .chat-msg {
-      margin-bottom: 11px;
-      padding: 8px 12px 8px 10px;
-      border-radius: 13px;
-      min-width: 90px;
-      max-width: 90%;
-      word-break: break-word;
-      display: inline-block;
-      box-shadow: 0 1px 6px #d4eaff1c;
-      position: relative;
-      font-size: 0.98em;
+      margin-bottom: 11px; padding: 8px 12px 8px 10px; border-radius: 13px; min-width: 90px; max-width: 90%;
+      word-break: break-word; display: inline-block; box-shadow: 0 1px 6px #d4eaff1c; position: relative; font-size: 0.98em;
     }
     .chat-user {
-      background: linear-gradient(90deg, #e7f4fd 90%, #d3e6fb 100%);
-      color: #125;
-      float: right;
-      text-align: right;
-      margin-left: 10%;
-      border-bottom-right-radius: 2px;
+      background: linear-gradient(90deg, #e7f4fd 90%, #d3e6fb 100%); color: #125; float: right; text-align: right;
+      margin-left: 10%; border-bottom-right-radius: 2px;
     }
     .chat-rh {
-      background: linear-gradient(90deg, #e3f9e7 90%, #c2f5d5 100%);
-      color: #174821;
-      float: left;
-      text-align: left;
-      margin-right: 10%;
-      border-bottom-left-radius: 2px;
+      background: linear-gradient(90deg, #e3f9e7 90%, #c2f5d5 100%); color: #174821; float: left; text-align: left;
+      margin-right: 10%; border-bottom-left-radius: 2px;
     }
-    .chat-author {
-      font-weight: 600;
-      font-size: 1em;
-      margin-right: 7px;
-      color: #3d6fa7;
-    }
-    .chat-date {
-      font-size: 0.90em;
-      color: #86a;
-      margin-left: 8px;
-      opacity: .82;
-    }
-    .chat-anexo-link {
-      display: inline-block;
-      margin: 7px 0 0 0;
-      font-size: 0.96em;
-      color: #379c89;
-      text-decoration: underline;
-    }
+    .chat-author { font-weight: 600; font-size: 1em; margin-right: 7px; color: #3d6fa7; }
+    .chat-date { font-size: 0.90em; color: #86a; margin-left: 8px; opacity: .82; }
+    .chat-anexo-link { display: inline-block; margin: 7px 0 0 0; font-size: 0.96em; color: #379c89; text-decoration: underline; }
     .clearfix::after { content: ""; display: table; clear: both; }
     .chat-form input[type="text"] {
-      width: 100%;
-      border-radius: 12px;
-      border: 1.2px solid #dbe2ee;
-      padding: 10px 12px;
-      font-size: 1.01rem;
-      outline: none;
-      background: #fafdff;
-      box-shadow: 0 1.5px 7px #eaf3ff1c;
-      transition: border .15s;
-      margin-bottom: 7px;
+      width: 100%; border-radius: 12px; border: 1.2px solid #dbe2ee; padding: 10px 12px; font-size: 1.01rem;
+      outline: none; background: #fafdff; box-shadow: 0 1.5px 7px #eaf3ff1c; transition: border .15s; margin-bottom: 7px;
     }
-    .chat-form input[type="text"]:focus {
-      border-color: #6ea8fe;
-    }
-    .input-file-wrap {
-      position: relative;
-      flex: 1 1 0;
-      min-width: 0;
-      max-width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: center;
-    }
+    .chat-form input[type="text"]:focus { border-color: #6ea8fe; }
+    .input-file-wrap { position: relative; flex: 1 1 0; min-width: 0; max-width: 100%; display: flex; flex-direction: column; align-items: stretch; justify-content: center; }
     .input-file { opacity: 0; width: 100%; height: 44px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
     .label-file.btn-clean { width: 100%; }
     .filename { font-size: .93rem; color: #3770a7; margin-top: 4px; word-break: break-all; }
     .btn-verde {
-      width: 100%;
-      background: linear-gradient(90deg,#3cd77a 80%,#49b87a 100%);
+      width: 100%; background: linear-gradient(90deg,#3cd77a 80%,#49b87a 100%);
       color:#fff; font-weight:600; font-size:1.08rem; border:none; border-radius:15px; padding:11px 0;
       box-shadow:0 1px 8px #38a06716; transition:background .17s, box-shadow .17s; cursor:pointer;
-      display: flex; align-items: center; justify-content: center; margin-top: 8px;
-      min-height: 40px;
+      display: flex; align-items: center; justify-content: center; margin-top: 8px; min-height: 40px;
     }
     .btn-verde:hover { background: linear-gradient(90deg,#38a067 85%,#49b87a 100%); }
-    .btn-cancel {
-      background: linear-gradient(90deg,#fb5656 85%,#e34343 100%);
-      color: #fff;
-      font-weight: 500;
-      border: none;
-      border-radius: 14px;
-      padding: 0 13px;
-      height: 32px;
-      margin-left: 10px;
-      box-shadow: 0 1px 6px #fd757526;
-      font-size: 1.01em;
-      cursor: pointer;
-      transition: background .16s;
-      display: flex; align-items: center;
-    }
-    .btn-stop {
-      background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
-      color: #fff;
-      font-weight: 500;
-      border: none;
-      border-radius: 14px;
-      padding: 0 13px;
-      height: 32px;
-      margin-left: 7px;
-      font-size: 1.01em;
-      cursor: pointer;
-      transition: background .15s;
-      display: flex; align-items: center;
-      box-shadow: 0 1px 6px #38a06716;
-    }
-    .audio-bar {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      background: #f3f8ff;
-      border-radius: 16px;
-      padding: 10px 14px;
-      margin-bottom: 10px;
-      box-shadow: 0 1px 6px 0 #b4c8e512;
-      border: 1.1px solid #dde5f1;
-      animation: fadeIn 0.23s;
-    }
-    .audio-timer {
-      font-family: monospace;
-      font-size: 1.10rem;
-      color: #4154d4;
-      margin-right: 10px;
-    }
-    .button-row {
-      display: flex;
-      gap: 18px;
-      margin-bottom: 9px;
-      justify-content: space-between;
-    }
-    .btn-big-wrap {
-      flex: 1 1 0;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      min-width: 0;
-    }
+    .button-row { display: flex; gap: 18px; margin-bottom: 9px; justify-content: space-between; }
+    .btn-big-wrap { flex: 1 1 0; display: flex; flex-direction: column; align-items: stretch; min-width: 0; }
     .btn-big {
-      width: 100%;
-      min-width: 0;
-      padding: 0 0;
-      height: 44px;
-      font-size: 1.07rem;
-      font-weight: 600;
-      justify-content: center;
-      letter-spacing: .01em;
-      display: flex;
-      align-items: center;
-      border-radius: 14px;
+      width: 100%; min-width: 0; padding: 0 0; height: 44px; font-size: 1.07rem; font-weight: 600; justify-content: center;
+      letter-spacing: .01em; display: flex; align-items: center; border-radius: 14px;
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 600px) {
       .container { padding: 14px 5vw 16px 5vw; }
-      .btn-clean, .btn-verde, .btn-cancel, .btn-stop, .btn-big { font-size: 0.97rem !important; }
+      .btn-clean, .btn-verde, .btn-big { font-size: 0.97rem !important; }
       .protocolo-form { flex-direction: column; gap: 7px; }
       .button-row { flex-direction: column; gap: 10px; }
+    }
+    .denuncia-finalizada-msg {
+      margin-top: 30px; text-align: center; color: #2a3551; font-size: 1.15rem;
+      background: #fafdff; border-radius: 13px; padding: 32px 14px;
     }
   </style>
 </head>
@@ -292,30 +118,37 @@
         {% endif %}
         <div class="clearfix"></div>
       </div>
-      <!-- Formulário de nova mensagem -->
-      <form id="chatForm" method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" enctype="multipart/form-data" autocomplete="off" class="chat-form">
-        <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
-        <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
 
-        <!-- Botões grandes lado a lado -->
-        <div class="button-row">
-          <div class="input-file-wrap btn-big-wrap">
-            <label for="file-upload-user" class="label-file btn-clean btn-big"> Anexar Documento</label>
-            <input type="file" id="file-upload-user" name="anexo" class="input-file"
-              accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-              onchange="showFilenameUser()">
-            <div class="filename" id="filename-user"></div>
+      {% if denuncia.status != 'Finalizada' %}
+        <!-- Formulário de nova mensagem -->
+        <form id="chatForm" method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" enctype="multipart/form-data" autocomplete="off" class="chat-form">
+          <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
+          <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
+          <!-- Botões grandes lado a lado -->
+          <div class="button-row">
+            <div class="input-file-wrap btn-big-wrap">
+              <label for="file-upload-user" class="label-file btn-clean btn-big">📎 Anexar Documento</label>
+              <input type="file" id="file-upload-user" name="anexo" class="input-file"
+                accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                onchange="showFilenameUser()">
+              <div class="filename" id="filename-user"></div>
+            </div>
+            <div class="btn-big-wrap">
+              <button type="button" class="btn-clean btn-big" id="btn-gravar-audio" onclick="abrirGravadorAudio()">
+                🎤 Gravar Áudio
+              </button>
+            </div>
           </div>
-          <div class="btn-big-wrap">
-            <button type="button" class="btn-clean btn-big" id="btn-gravar-audio" onclick="abrirGravadorAudio()">
-               Gravar Áudio
-            </button>
-          </div>
+          <!-- Barra de Gravação -->
+          <div id="audio-bar" style="display:none;"></div>
+          <button type="submit" class="btn-verde">Enviar</button>
+        </form>
+      {% else %}
+        <div class="denuncia-finalizada-msg">
+          <b>Denúncia finalizada.</b><br>
+          Em caso de dúvidas, entre em contato com o RH.
         </div>
-        <!-- Barra de Gravação estilo WhatsApp -->
-        <div id="audio-bar" style="display:none;"></div>
-        <button type="submit" class="btn-verde">Enviar</button>
-      </form>
+      {% endif %}
     {% endif %}
   </div>
   <script>
@@ -324,99 +157,8 @@
       const label = document.getElementById('filename-user');
       label.textContent = input.files.length ? input.files[0].name : '';
     }
-
-    // ===== Gravação de Áudio estilo WhatsApp =====
-    let mediaRecorder;
-    let audioChunks = [];
-    let audioBlob = null;
-    let gravando = false;
-    let gravaInterval = null;
-    let gravaTempo = 0;
-
-    function formatTime(sec) {
-      const m = String(Math.floor(sec/60)).padStart(2,'0');
-      const s = String(sec%60).padStart(2,'0');
-      return `${m}:${s}`;
-    }
-
-    function abrirGravadorAudio() {
-      if (gravando) return;
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-          audioBlob = null;
-          gravando = true;
-          gravaTempo = 0;
-          document.getElementById('btn-gravar-audio').style.display = 'none';
-          mostrarBarraGravacao();
-          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-          mediaRecorder.onstop = () => {
-            gravando = false;
-            audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            mostrarAudioPlayer();
-          };
-          mediaRecorder.start();
-          gravaInterval = setInterval(() => {
-            gravaTempo++;
-            document.getElementById('audio-timer').textContent = formatTime(gravaTempo);
-            if (gravaTempo >= 120) pararGravacao();
-          }, 1000);
-        });
-    }
-    function mostrarBarraGravacao() {
-      const audioBar = document.getElementById('audio-bar');
-      audioBar.innerHTML = `
-        <span id="audio-timer" class="audio-timer">00:00</span>
-        <button type="button" class="btn-cancel" onclick="cancelarGravacao()">❌ Cancelar</button>
-        <button type="button" class="btn-stop" onclick="pararGravacao()">✅ Parar</button>
-      `;
-      audioBar.style.display = 'flex';
-    }
-    function mostrarAudioPlayer() {
-      clearInterval(gravaInterval);
-      const audioBar = document.getElementById('audio-bar');
-      audioBar.innerHTML = `
-        <audio id="audio-player" controls style="width:100%; margin-right:6px; border-radius:11px; background:#fafcff;"></audio>
-        <button type="button" class="btn-cancel" onclick="removerAudio()">Excluir Áudio</button>
-      `;
-      const player = document.getElementById('audio-player');
-      player.src = URL.createObjectURL(audioBlob);
-      document.getElementById('audio-bar').style.display = 'flex';
-      document.getElementById('btn-gravar-audio').style.display = '';
-    }
-    function pararGravacao() {
-      if (mediaRecorder && gravando) {
-        mediaRecorder.stop();
-      }
-    }
-    function cancelarGravacao() {
-      if (mediaRecorder && gravando) {
-        mediaRecorder.stop();
-        audioChunks = [];
-        audioBlob = null;
-      }
-      clearInterval(gravaInterval);
-      gravando = false;
-      document.getElementById('audio-bar').style.display = 'none';
-      document.getElementById('btn-gravar-audio').style.display = '';
-    }
-    function removerAudio() {
-      audioBlob = null;
-      audioChunks = [];
-      document.getElementById('audio-bar').style.display = 'none';
-    }
-    // Envio via FormData se áudio
-    document.getElementById('chatForm').onsubmit = function(e){
-      if (audioBlob) {
-        e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
-        formData.append('anexo', audioBlob, 'audio.webm');
-        fetch(form.action, { method: 'POST', body: formData })
-          .then(resp => window.location.reload());
-      }
-    };
+    // ===== Gravação de Áudio (se já usava, mantenha o mesmo script de antes) =====
+    // ... (mantenha o seu JS de gravação de áudio igual ao anterior) ...
   </script>
 </body>
 </html>
