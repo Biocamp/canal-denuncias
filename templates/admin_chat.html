@@ -5,7 +5,6 @@
     <title>Chat RH – Canal de Denúncias</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        /* ...mesmo CSS já usado antes... */
         body { background: #f5f7fa; font-family: 'Segoe UI', Arial, sans-serif; }
         .card { max-width: 520px; margin: 64px auto; padding: 42px 36px 32px 36px;
             background: #fff; border-radius: 22px; box-shadow: 0 4px 24px #00306118; position: relative; }
@@ -76,17 +75,45 @@
         .input-file { opacity: 0; width: 100%; height: 44px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
         .label-file.btn-big { width: 100%; }
         .filename { font-size: .93rem; color: #3770a7; margin-top: 4px; word-break: break-all; }
-        .audio-bar {
-          display: flex; align-items: center; gap: 11px; background: #f3f8ff; border-radius: 16px; padding: 10px 14px;
-          margin-bottom: 10px; box-shadow: 0 1px 6px 0 #b4c8e512; border: 1.1px solid #dde5f1; animation: fadeIn 0.23s;
+        /* Barra de áudio estilizada */
+        #audio-bar-rh {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: #f8fafc;
+          border-radius: 13px;
+          padding: 12px 18px;
+          margin-bottom: 13px;
+          box-shadow: 0 1px 6px #d4eaff16;
+          border: 1.1px solid #dde5f1;
+          animation: fadeIn 0.23s;
         }
-        .audio-timer { font-family: monospace; font-size: 1.10rem; color: #4154d4; margin-right: 10px; }
-        .denuncia-finalizada-msg {
-          margin-top: 30px; text-align: center; color: #2a3551; font-size: 1.15rem;
-          background: #fafdff; border-radius: 13px; padding: 32px 14px;
+        .audio-btn {
+          padding: 9px 20px;
+          border-radius: 11px;
+          border: none;
+          font-size: 1.08rem;
+          font-weight: 600;
+          margin-left: 2px;
+          cursor: pointer;
+          transition: background .14s;
+          box-shadow: 0 1px 4px #bcc6e226;
+          outline: none;
         }
-        .voltar-link {
-            display: block; margin: 28px auto 0 auto; color: #245; text-align: center; font-size: 1.12rem; text-decoration: underline;
+        .audio-btn-red {
+          background: linear-gradient(90deg,#fa6861 70%,#df4c41 100%);
+          color: #fff;
+        }
+        .audio-btn-red:hover {
+          background: linear-gradient(90deg,#df4c41 85%,#fa6861 100%);
+        }
+        .audio-btn-gray {
+          background: #e7ebf1;
+          color: #555;
+        }
+        .audio-btn-gray:hover {
+          background: #dde4ea;
+          color: #1a355e;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @media (max-width: 700px) {
@@ -139,7 +166,6 @@
             {% endif %}
             <div class="clearfix"></div>
         </div>
-
         {% if denuncia.status != 'Finalizada' %}
         <!-- FORMULÁRIO CHAT RH -->
         <form method="post" enctype="multipart/form-data" class="chat-form" id="chatFormRh" style="margin-top:0;">
@@ -199,13 +225,13 @@
           if (gravar) {
             audioBarRh.innerHTML = `
               <span>Gravando áudio...</span>
-              <button type="button" onclick="pararGravacaoRh()">Parar</button>
-              <button type="button" onclick="cancelarAudioRh()">Cancelar</button>
+              <button type="button" class="audio-btn audio-btn-red" onclick="pararGravacaoRh()">&#9632; Parar</button>
+              <button type="button" class="audio-btn audio-btn-gray" onclick="cancelarAudioRh()">Cancelar</button>
             `;
           } else if (audioBlobRh) {
             audioBarRh.innerHTML = `
               <audio controls style="vertical-align:middle; max-width:70%;"><source src="${URL.createObjectURL(audioBlobRh)}"></audio>
-              <button type="button" onclick="cancelarAudioRh()">Excluir</button>
+              <button type="button" class="audio-btn audio-btn-gray" onclick="cancelarAudioRh()">Excluir</button>
             `;
           }
           audioBarRh.style.display = "flex";

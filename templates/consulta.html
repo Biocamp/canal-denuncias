@@ -5,7 +5,6 @@
   <title>Consulta de Denúncias</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* ... seu CSS ... (mantenha igual à sua última versão) ... */
     body { background: #f5f7fa; font-family: Arial, sans-serif; }
     .container {
       max-width: 520px; margin: 64px auto; padding: 44px 38px 32px 38px;
@@ -82,18 +81,58 @@
       margin-top: 30px; text-align: center; color: #2a3551; font-size: 1.15rem;
       background: #fafdff; border-radius: 13px; padding: 32px 14px;
     }
+
+    /* ==== Barra de Áudio ==== */
+    #audio-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      border-radius: 13px;
+      padding: 12px 18px;
+      margin-bottom: 13px;
+      box-shadow: 0 1px 6px #d4eaff16;
+      border: 1.1px solid #dde5f1;
+      animation: fadeIn 0.23s;
+    }
+    .audio-btn {
+      padding: 9px 20px;
+      border-radius: 11px;
+      border: none;
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-left: 2px;
+      cursor: pointer;
+      transition: background .14s;
+      box-shadow: 0 1px 4px #bcc6e226;
+      outline: none;
+    }
+    .audio-btn-red {
+      background: linear-gradient(90deg,#fa6861 70%,#df4c41 100%);
+      color: #fff;
+    }
+    .audio-btn-red:hover {
+      background: linear-gradient(90deg,#df4c41 85%,#fa6861 100%);
+    }
+    .audio-btn-gray {
+      background: #e7ebf1;
+      color: #555;
+    }
+    .audio-btn-gray:hover {
+      background: #dde4ea;
+      color: #1a355e;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Consulta de Denúncias</h1>
-
     <!-- Formulário de protocolo -->
     <form method="post" action="{{ url_for('consulta') }}" class="protocolo-form">
       <input type="text" name="protocolo" placeholder="Digite o protocolo" value="{{ protocolo or '' }}" required>
       <button type="submit" class="btn-clean">Buscar</button>
     </form>
-
     {% if denuncia %}
       <hr>
       <div class="denuncia-bloco">
@@ -119,7 +158,6 @@
         {% endif %}
         <div class="clearfix"></div>
       </div>
-
       {% if denuncia.status != 'Finalizada' %}
         <!-- Formulário de nova mensagem -->
         <form id="chatForm" method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" enctype="multipart/form-data" autocomplete="off" class="chat-form">
@@ -150,13 +188,14 @@
       {% endif %}
     {% endif %}
   </div>
-  <!-- =============== JS PARA ENVIO DE ÁUDIO ================= -->
   <script>
     function showFilenameUser() {
       const input = document.getElementById('file-upload-user');
       const label = document.getElementById('filename-user');
       label.textContent = input.files.length ? input.files[0].name : '';
     }
+
+    // ============= ÁUDIO - MESMO JS DA BARRA FUNCIONAL ============
 
     let mediaRecorder, audioChunks = [], audioBlob = null;
     const audioBar = document.getElementById('audio-bar');
@@ -182,13 +221,13 @@
       if (gravar) {
         audioBar.innerHTML = `
           <span>Gravando áudio...</span>
-          <button type="button" onclick="pararGravacao()">Parar</button>
-          <button type="button" onclick="cancelarAudio()">Cancelar</button>
+          <button type="button" class="audio-btn audio-btn-red" onclick="pararGravacao()">&#9632; Parar</button>
+          <button type="button" class="audio-btn audio-btn-gray" onclick="cancelarAudio()">Cancelar</button>
         `;
       } else if (audioBlob) {
         audioBar.innerHTML = `
           <audio controls style="vertical-align:middle; max-width:70%;"><source src="${URL.createObjectURL(audioBlob)}"></audio>
-          <button type="button" onclick="cancelarAudio()">Excluir</button>
+          <button type="button" class="audio-btn audio-btn-gray" onclick="cancelarAudio()">Excluir</button>
         `;
       }
       audioBar.style.display = "flex";
@@ -208,14 +247,10 @@
       if (audioBlob) {
         e.preventDefault();
         const formData = new FormData(chatForm);
-        // Remove input file de anexo, para não duplicar
-        formData.delete('anexo');
+        // Faz o envio como anexo (formato webm)
         formData.append('anexo', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
-        fetch(chatForm.action, {
-          method: 'POST',
-          body: formData
-        })
-        .then(r => { window.location.reload(); });
+        fetch(chatForm.action, { method: 'POST', body: formData })
+          .then(() => window.location.reload());
       }
     };
   </script>
