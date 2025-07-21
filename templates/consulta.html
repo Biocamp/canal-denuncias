@@ -5,6 +5,7 @@
   <title>Consulta de Denúncias</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* ... seu CSS ... (mantenha igual à sua última versão) ... */
     body { background: #f5f7fa; font-family: Arial, sans-serif; }
     .container {
       max-width: 520px; margin: 64px auto; padding: 44px 38px 32px 38px;
@@ -149,6 +150,7 @@
       {% endif %}
     {% endif %}
   </div>
+  <!-- =============== JS PARA ENVIO DE ÁUDIO ================= -->
   <script>
     function showFilenameUser() {
       const input = document.getElementById('file-upload-user');
@@ -156,7 +158,6 @@
       label.textContent = input.files.length ? input.files[0].name : '';
     }
 
-    // ÁUDIO - JS para gravar e enviar como 'anexo'
     let mediaRecorder, audioChunks = [], audioBlob = null;
     const audioBar = document.getElementById('audio-bar');
     const btnGravarAudio = document.getElementById('btn-gravar-audio');
@@ -207,10 +208,14 @@
       if (audioBlob) {
         e.preventDefault();
         const formData = new FormData(chatForm);
-        // O CAMPO DEVE SER SEMPRE 'anexo'!
+        // Remove input file de anexo, para não duplicar
+        formData.delete('anexo');
         formData.append('anexo', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
-        fetch(chatForm.action, { method: 'POST', body: formData })
-          .then(() => window.location.reload());
+        fetch(chatForm.action, {
+          method: 'POST',
+          body: formData
+        })
+        .then(r => { window.location.reload(); });
       }
     };
   </script>
