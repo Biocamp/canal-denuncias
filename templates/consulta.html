@@ -70,7 +70,10 @@
     .btn-big {
       width: 100%; min-width: 0; padding: 0 0; height: 44px; font-size: 1.07rem; font-weight: 600; justify-content: center;
       letter-spacing: .01em; display: flex; align-items: center; border-radius: 14px;
+      background: linear-gradient(90deg, #5ca9fb 0%, #6372ff 100%);
+      color: #fff; border: none; cursor: pointer; box-shadow: 0 1px 5px 0 #b7e1fb10; transition: background 0.17s, box-shadow 0.17s;
     }
+    .btn-big:active { background: #4154d4; }
     @media (max-width: 600px) {
       .container { padding: 14px 5vw 16px 5vw; }
       .btn-clean, .btn-verde, .btn-big { font-size: 0.97rem !important; }
@@ -81,8 +84,7 @@
       margin-top: 30px; text-align: center; color: #2a3551; font-size: 1.15rem;
       background: #fafdff; border-radius: 13px; padding: 32px 14px;
     }
-
-    /* ==== Barra de Áudio ==== */
+    /* ===== BARRA DE ÁUDIO ESTILIZADA ===== */
     #audio-bar {
       display: flex;
       align-items: center;
@@ -194,9 +196,7 @@
       const label = document.getElementById('filename-user');
       label.textContent = input.files.length ? input.files[0].name : '';
     }
-
-    // ============= ÁUDIO - MESMO JS DA BARRA FUNCIONAL ============
-
+    // ===== Gravação de Áudio =====
     let mediaRecorder, audioChunks = [], audioBlob = null;
     const audioBar = document.getElementById('audio-bar');
     const btnGravarAudio = document.getElementById('btn-gravar-audio');
@@ -247,7 +247,7 @@
       if (audioBlob) {
         e.preventDefault();
         const formData = new FormData(chatForm);
-        // Faz o envio como anexo (formato webm)
+        formData.delete('anexo');
         formData.append('anexo', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
         fetch(chatForm.action, { method: 'POST', body: formData })
           .then(() => window.location.reload());
