@@ -6,8 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f5f7fa; font-family: Arial, sans-serif; }
-    .container { max-width: 520px; margin: 64px auto; padding: 44px 38px 32px 38px; background: #fff; border-radius: 20px;
-      box-shadow: 0 4px 24px #00306118; position: relative;}
+    .container {
+      max-width: 520px; margin: 64px auto; padding: 44px 38px 32px 38px;
+      background: #fff; border-radius: 20px;
+      box-shadow: 0 4px 24px #00306118; position: relative;
+    }
     h1 { text-align: center; color: #1a355e; font-weight: 700; font-size: 2rem; margin-bottom: 20px; }
     .protocolo-form { display: flex; gap: 12px; margin-bottom: 16px; justify-content: center; }
     .protocolo-form input[type="text"] {
@@ -83,6 +86,8 @@
 <body>
   <div class="container">
     <h1>Consulta de Denúncias</h1>
+
+    <!-- Formulário de protocolo -->
     <form method="post" action="{{ url_for('consulta') }}" class="protocolo-form">
       <input type="text" name="protocolo" placeholder="Digite o protocolo" value="{{ protocolo or '' }}" required>
       <button type="submit" class="btn-clean">Buscar</button>
@@ -113,7 +118,9 @@
         {% endif %}
         <div class="clearfix"></div>
       </div>
+
       {% if denuncia.status != 'Finalizada' %}
+        <!-- Formulário de nova mensagem -->
         <form id="chatForm" method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" enctype="multipart/form-data" autocomplete="off" class="chat-form">
           <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
           <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
@@ -148,10 +155,13 @@
       const label = document.getElementById('filename-user');
       label.textContent = input.files.length ? input.files[0].name : '';
     }
-    // ÁUDIO ENVIO FUNCIONAL
-    let mediaRecorder, audioChunks = [], audioBlob = null, audioTimerInterval;
+
+    // ÁUDIO - JS para gravar e enviar como 'anexo'
+    let mediaRecorder, audioChunks = [], audioBlob = null;
     const audioBar = document.getElementById('audio-bar');
+    const btnGravarAudio = document.getElementById('btn-gravar-audio');
     const chatForm = document.getElementById('chatForm');
+
     function abrirGravadorAudio() {
       if (mediaRecorder && mediaRecorder.state === "recording") return;
       navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -166,6 +176,7 @@
         exibirBarraAudio(true);
       });
     }
+
     function exibirBarraAudio(gravar = false) {
       if (gravar) {
         audioBar.innerHTML = `
@@ -181,25 +192,27 @@
       }
       audioBar.style.display = "flex";
     }
+
     function pararGravacao() {
       if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
     }
+
     function cancelarAudio() {
       audioBlob = null; audioChunks = [];
       audioBar.style.display = "none";
       audioBar.innerHTML = "";
     }
-    if(chatForm){
-      chatForm.onsubmit = function(e){
-        if (audioBlob) {
-          e.preventDefault();
-          const formData = new FormData(chatForm);
-          formData.append('anexo', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
-          fetch(chatForm.action, { method: 'POST', body: formData })
-            .then(() => window.location.reload());
-        }
-      };
-    }
+
+    chatForm.onsubmit = function(e){
+      if (audioBlob) {
+        e.preventDefault();
+        const formData = new FormData(chatForm);
+        // O CAMPO DEVE SER SEMPRE 'anexo'!
+        formData.append('anexo', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
+        fetch(chatForm.action, { method: 'POST', body: formData })
+          .then(() => window.location.reload());
+      }
+    };
   </script>
 </body>
 </html>
