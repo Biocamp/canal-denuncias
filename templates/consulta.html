@@ -73,6 +73,17 @@
         .denuncia-inicial b {
             color: #1a355e;
         }
+        .conversa-encerrada {
+            background: #ffeaea;
+            color: #b20b23;
+            border: 1.5px solid #f5a6ae;
+            border-radius: 11px;
+            padding: 14px 13px;
+            font-weight: bold;
+            margin-bottom: 18px;
+            text-align: center;
+            font-size: 1.11rem;
+        }
         .chat-messages {
             max-height: 300px;
             overflow-y: auto;
@@ -170,6 +181,13 @@
                 Protocolo: {{ denuncia.protocolo }}
             </h2>
 
+            <!-- MENSAGEM DE CONVERSA ENCERRADA -->
+            {% if denuncia.status == 'Finalizada' %}
+                <div class="conversa-encerrada">
+                    Essa conversa já foi finalizada. Em caso de dúvidas, procure o RH.
+                </div>
+            {% endif %}
+
             <!-- Bloco do relato inicial da denúncia -->
             <div class="denuncia-inicial">
                 <b>Denúncia relatada em {{ denuncia.data_hora.strftime('%d/%m/%Y %H:%M') }}:</b>
@@ -200,7 +218,8 @@
                 {% endfor %}
             </div>
 
-            <!-- Formulário de nova mensagem -->
+            <!-- Formulário de nova mensagem só aparece se NÃO estiver finalizada -->
+            {% if denuncia.status != 'Finalizada' %}
             <form
                 id="chatForm"
                 method="post"
@@ -235,6 +254,7 @@
                 </div>
                 <button type="submit" class="btn" style="margin-top:4px;">Enviar</button>
             </form>
+            {% endif %}
         {% endif %}
     </div>
 
