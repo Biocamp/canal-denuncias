@@ -7,77 +7,99 @@
   <style>
     body {
       background: #f5f7fa;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
     .container {
       max-width: 520px;
-      margin: 64px auto;
-      padding: 44px 38px 32px 38px;
+      margin: 60px auto;
+      padding: 38px 24px 24px 24px;
       background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 4px 24px #00306118;
+      border-radius: 22px;
+      box-shadow: 0 4px 24px #00306114;
       position: relative;
     }
     h1 {
       text-align: center;
-      color: #1a355e;
+      color: #183158;
       font-weight: 700;
-      font-size: 2rem;
-      margin-bottom: 20px;
+      font-size: 2.1rem;
+      margin-bottom: 24px;
+      letter-spacing: 0.01em;
     }
     .protocolo-form {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 16px;
       justify-content: center;
     }
     .protocolo-form input[type="text"] {
       flex: 1 1 auto;
-      border-radius: 7px;
-      border: 1.2px solid #dbe2ee;
-      padding: 10px 12px;
+      border-radius: 13px;
+      border: 1.3px solid #dde6f7;
+      padding: 8px 14px;
       font-size: 1rem;
       outline: none;
+      background: #f7fbff;
+      box-shadow: 0 1.5px 7px #eaf3ff10;
+      transition: border .15s;
       min-width: 0;
-      box-shadow: 0 1.5px 7px #eaf3ff18;
-      transition: border .18s;
     }
     .protocolo-form input[type="text"]:focus {
-      border-color: #6ea8fe;
+      border-color: #5ea4fd;
     }
-    .protocolo-form .btn-azul {
-      min-width: 100px;
-    }
-    .denuncia-bloco {
-      background: #eaf2ff;
-      border-left: 5px solid #6ea8fe;
-      padding: 14px 18px 12px 18px;
-      margin-bottom: 18px;
-      border-radius: 10px;
-      font-size: 1.09rem;
-      box-shadow: 0 1px 6px #b4c8e516;
+    .btn-clean {
+      min-width: 85px;
+      height: 34px;
+      padding: 0 18px;
+      border-radius: 16px;
+      font-size: 1.05rem;
       font-weight: 500;
+      background: linear-gradient(90deg, #5ca9fb 0%, #6372ff 100%);
+      color: #fff;
+      border: none;
+      transition: background 0.17s, box-shadow 0.17s;
+      box-shadow: 0 1px 5px 0 #b7e1fb10;
+      cursor: pointer;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-clean:active { background: #4154d4; }
+    .denuncia-bloco {
+      background: #f5faff;
+      border-left: 4px solid #63a3fa;
+      padding: 12px 15px 10px 15px;
+      margin-bottom: 16px;
+      border-radius: 13px;
+      font-size: 1.04rem;
+      font-weight: 500;
+      color: #2a3551;
+      box-shadow: 0 1px 6px #b4c8e513;
     }
     .chat-container {
       background: #f8fafc;
-      border: 1.5px solid #e4e9f2;
-      border-radius: 14px;
-      max-height: 240px;
+      border: 1.3px solid #e4e9f2;
+      border-radius: 13px;
+      max-height: 235px;
       overflow-y: auto;
-      padding: 12px 12px 6px 12px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 10px #6ea8fe1a;
+      padding: 11px 10px 5px 10px;
+      margin-bottom: 13px;
+      box-shadow: 0 2px 10px #6ea8fe12;
     }
     .chat-msg {
-      margin-bottom: 12px;
-      padding: 10px 16px 9px 10px;
-      border-radius: 12px;
-      min-width: 100px;
+      margin-bottom: 11px;
+      padding: 8px 12px 8px 10px;
+      border-radius: 13px;
+      min-width: 90px;
       max-width: 90%;
       word-break: break-word;
       display: inline-block;
-      box-shadow: 0 1px 6px #d4eaff29;
+      box-shadow: 0 1px 6px #d4eaff1c;
       position: relative;
+      font-size: 0.98em;
     }
     .chat-user {
       background: linear-gradient(90deg, #e7f4fd 90%, #d3e6fb 100%);
@@ -96,34 +118,36 @@
       border-bottom-left-radius: 2px;
     }
     .chat-author {
-      font-weight: bold;
+      font-weight: 600;
       font-size: 1em;
-      margin-right: 8px;
+      margin-right: 7px;
+      color: #3d6fa7;
     }
     .chat-date {
-      font-size: 0.93em;
+      font-size: 0.90em;
       color: #86a;
       margin-left: 8px;
-      opacity: .85;
+      opacity: .82;
     }
     .chat-anexo-link {
       display: inline-block;
       margin: 7px 0 0 0;
       font-size: 0.96em;
-      color: #3fa889;
+      color: #379c89;
       text-decoration: underline;
     }
     .clearfix::after { content: ""; display: table; clear: both; }
     .chat-form input[type="text"] {
       width: 100%;
-      border-radius: 9px;
+      border-radius: 12px;
       border: 1.2px solid #dbe2ee;
-      padding: 12px 14px;
-      font-size: 1.02rem;
+      padding: 10px 12px;
+      font-size: 1.01rem;
       outline: none;
+      background: #fafdff;
       box-shadow: 0 1.5px 7px #eaf3ff1c;
-      transition: border .17s;
-      margin-bottom: 8px;
+      transition: border .15s;
+      margin-bottom: 7px;
     }
     .chat-form input[type="text"]:focus {
       border-color: #6ea8fe;
@@ -131,56 +155,76 @@
     .input-file-wrap {
       position: relative;
       flex: 1;
-      min-width: 100px;
-      max-width: 150px;
+      min-width: 80px;
+      max-width: 130px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    .input-file { opacity: 0; width: 100%; height: 41px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
-    .label-file.btn-azul { width:100%; }
+    .input-file { opacity: 0; width: 100%; height: 34px; position: absolute; left: 0; top: 0; cursor: pointer; z-index: 2; }
+    .label-file.btn-clean { width: 100%; }
     .filename { font-size: .93rem; color: #3770a7; margin-top: 4px; word-break: break-all; }
-    .btn-azul {
-      background: linear-gradient(90deg,#6ea8fe 80%,#4186ec 100%) !important;
-      color: #fff !important;
-      font-weight: bold !important;
-      border: none !important;
-      border-radius: 9px !important;
-      padding: 14px 0 !important;
-      font-size: 1rem !important;
-      box-shadow: 0 2px 8px #6ea8fe26 !important;
-      width: 100% !important;
-      cursor: pointer !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      margin-bottom: 0 !important;
-      min-width: 0 !important;
-    }
-    .btn-azul:hover { background: linear-gradient(90deg,#4186ec 80%,#6ea8fe 100%) !important; }
     .btn-verde {
-      width:100%; background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
-      color:#fff; font-weight:bold; font-size:1.1rem; border:none; border-radius:9px; padding:14px 0;
-      box-shadow:0 2px 8px #38a06732; transition:background .2s, box-shadow .2s; cursor:pointer;
+      width:100%; background: linear-gradient(90deg,#3cd77a 80%,#49b87a 100%);
+      color:#fff; font-weight:600; font-size:1.08rem; border:none; border-radius:15px; padding:11px 0;
+      box-shadow:0 1px 8px #38a06716; transition:background .17s, box-shadow .17s; cursor:pointer;
       display: flex; align-items: center; justify-content: center; margin-top: 8px;
+      min-height: 40px;
     }
     .btn-verde:hover { background: linear-gradient(90deg,#38a067 85%,#49b87a 100%); }
-    .btn-vermelho {
-      background: linear-gradient(90deg,#fb5656 80%,#c32525 100%) !important;
-      color: #fff !important;
-      font-weight: bold !important;
-      border: none !important;
-      border-radius: 9px !important;
-      padding: 12px 0 !important;
-      font-size: 1rem !important;
-      box-shadow: 0 2px 8px #f57b7b26 !important;
-      width: 100% !important;
-      cursor: pointer !important;
-      margin-bottom: 0 !important;
+    .btn-cancel {
+      background: linear-gradient(90deg,#fb5656 85%,#e34343 100%);
+      color: #fff;
+      font-weight: 500;
+      border: none;
+      border-radius: 14px;
+      padding: 0 13px;
+      height: 32px;
+      margin-left: 10px;
+      box-shadow: 0 1px 6px #fd757526;
+      font-size: 1.01em;
+      cursor: pointer;
+      transition: background .16s;
+      display: flex; align-items: center;
     }
+    .btn-stop {
+      background: linear-gradient(90deg,#49b87a 80%,#38a067 100%);
+      color: #fff;
+      font-weight: 500;
+      border: none;
+      border-radius: 14px;
+      padding: 0 13px;
+      height: 32px;
+      margin-left: 7px;
+      font-size: 1.01em;
+      cursor: pointer;
+      transition: background .15s;
+      display: flex; align-items: center;
+      box-shadow: 0 1px 6px #38a06716;
+    }
+    .audio-bar {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: #f3f8ff;
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 6px 0 #b4c8e512;
+      border: 1.1px solid #dde5f1;
+      animation: fadeIn 0.23s;
+    }
+    .audio-timer {
+      font-family: monospace;
+      font-size: 1.10rem;
+      color: #4154d4;
+      margin-right: 10px;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 600px) {
       .container { padding: 14px 5vw 16px 5vw; }
-      .btn-azul, .btn-verde, .btn-vermelho { font-size: 0.95rem !important; }
+      .btn-clean, .btn-verde, .btn-cancel, .btn-stop { font-size: 0.95rem !important; }
+      .protocolo-form { flex-direction: column; gap: 7px; }
     }
   </style>
 </head>
@@ -191,7 +235,7 @@
     <!-- Formulário de protocolo -->
     <form method="post" action="{{ url_for('consulta') }}" class="protocolo-form">
       <input type="text" name="protocolo" placeholder="Digite o protocolo" value="{{ protocolo or '' }}" required>
-      <button type="submit" class="btn-azul">Buscar</button>
+      <button type="submit" class="btn-clean">Buscar</button>
     </form>
 
     {% if denuncia %}
@@ -223,22 +267,22 @@
       <form id="chatForm" method="post" action="{{ url_for('chat', protocolo=denuncia.protocolo) }}" enctype="multipart/form-data" autocomplete="off" class="chat-form">
         <input type="hidden" name="protocolo" value="{{ denuncia.protocolo }}">
         <input type="text" name="mensagem" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off">
-        <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 7px;">
           <div class="input-file-wrap">
-            <label for="file-upload-user" class="label-file btn-azul">Anexar Documento</label>
+            <label for="file-upload-user" class="label-file btn-clean">Anexar Documento</label>
             <input type="file" id="file-upload-user" name="anexo" class="input-file"
               accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
               onchange="showFilenameUser()">
             <div class="filename" id="filename-user"></div>
           </div>
-          <button type="button" class="btn-azul" id="btn-gravar-audio" onclick="abrirGravadorAudio()">
-            <span style="font-size:1.1em; margin-right:7px;">🎤</span> Gravar Áudio
-          </button>
+          <div id="audio-section" style="flex:2;">
+            <button type="button" class="btn-clean" id="btn-gravar-audio" onclick="abrirGravadorAudio()" style="width:100%;">
+              <span style="font-size:1.08em; margin-right:6px;">🎤</span> Gravar Áudio
+            </button>
+          </div>
         </div>
-        <div id="audio-controls-area" style="margin-bottom:10px; display:none;">
-          <audio id="audio-player" controls style="width:100%;"></audio>
-          <button type="button" class="btn-vermelho" id="btn-excluir-audio" style="margin-top:8px;">Excluir Áudio</button>
-        </div>
+        <!-- Barra de Gravação estilo WhatsApp -->
+        <div id="audio-bar" style="display:none;"></div>
         <button type="submit" class="btn-verde">Enviar</button>
       </form>
     {% endif %}
@@ -250,48 +294,88 @@
       label.textContent = input.files.length ? input.files[0].name : '';
     }
 
-    // ===== Gravação de Áudio =====
+    // ===== Gravação de Áudio estilo WhatsApp =====
     let mediaRecorder;
     let audioChunks = [];
     let audioBlob = null;
+    let gravando = false;
+    let gravaInterval = null;
+    let gravaTempo = 0;
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec/60)).padStart(2,'0');
+      const s = String(sec%60).padStart(2,'0');
+      return `${m}:${s}`;
+    }
 
     function abrirGravadorAudio() {
-      if (mediaRecorder && mediaRecorder.state === "recording") return; // Impede duplo clique
+      if (gravando) return;
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
           mediaRecorder = new MediaRecorder(stream);
           audioChunks = [];
-          document.getElementById('audio-controls-area').style.display = 'block';
-          document.getElementById('audio-player').style.display = 'none';
-          document.getElementById('btn-excluir-audio').style.display = 'none';
-          document.getElementById('btn-gravar-audio').textContent = "Gravando...";
+          audioBlob = null;
+          gravando = true;
+          gravaTempo = 0;
+          document.getElementById('btn-gravar-audio').style.display = 'none';
+          mostrarBarraGravacao();
           mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
           mediaRecorder.onstop = () => {
+            gravando = false;
             audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            let url = URL.createObjectURL(audioBlob);
-            const player = document.getElementById('audio-player');
-            player.src = url;
-            player.style.display = 'block';
-            document.getElementById('btn-excluir-audio').style.display = 'inline-block';
-            document.getElementById('btn-gravar-audio').textContent = "Gravar Áudio";
+            mostrarAudioPlayer();
           };
           mediaRecorder.start();
-          setTimeout(() => pararGravacao(), 120000); // Limite 2 min por gravação
+          gravaInterval = setInterval(() => {
+            gravaTempo++;
+            document.getElementById('audio-timer').textContent = formatTime(gravaTempo);
+            if (gravaTempo >= 120) pararGravacao();
+          }, 1000);
         });
     }
+    function mostrarBarraGravacao() {
+      const audioBar = document.getElementById('audio-bar');
+      audioBar.innerHTML = `
+        <span id="audio-timer" class="audio-timer">00:00</span>
+        <button type="button" class="btn-cancel" onclick="cancelarGravacao()">❌ Cancelar</button>
+        <button type="button" class="btn-stop" onclick="pararGravacao()">✅ Parar</button>
+      `;
+      audioBar.style.display = 'flex';
+    }
+    function mostrarAudioPlayer() {
+      clearInterval(gravaInterval);
+      const audioBar = document.getElementById('audio-bar');
+      audioBar.innerHTML = `
+        <audio id="audio-player" controls style="width:100%; margin-right:6px; border-radius:11px; background:#fafcff;"></audio>
+        <button type="button" class="btn-cancel" onclick="removerAudio()">Excluir Áudio</button>
+      `;
+      const player = document.getElementById('audio-player');
+      player.src = URL.createObjectURL(audioBlob);
+      document.getElementById('audio-bar').style.display = 'flex';
+      document.getElementById('btn-gravar-audio').style.display = '';
+    }
     function pararGravacao() {
-      if (mediaRecorder && mediaRecorder.state === "recording") {
+      if (mediaRecorder && gravando) {
         mediaRecorder.stop();
       }
     }
-    // Botão excluir áudio
-    document.getElementById('btn-excluir-audio').onclick = function () {
+    function cancelarGravacao() {
+      if (mediaRecorder && gravando) {
+        mediaRecorder.stop();
+        audioChunks = [];
+        audioBlob = null;
+      }
+      clearInterval(gravaInterval);
+      gravando = false;
+      document.getElementById('audio-bar').style.display = 'none';
+      document.getElementById('btn-gravar-audio').style.display = '';
+    }
+    function removerAudio() {
       audioBlob = null;
       audioChunks = [];
-      document.getElementById('audio-player').src = '';
-      document.getElementById('audio-controls-area').style.display = 'none';
-    };
-    // Sobrescrever o submit para enviar áudio via FormData
+      document.getElementById('audio-bar').style.display = 'none';
+    }
+    // Envio via FormData se áudio
     document.getElementById('chatForm').onsubmit = function(e){
       if (audioBlob) {
         e.preventDefault();
