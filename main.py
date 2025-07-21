@@ -8,7 +8,6 @@ from flask_mail import Mail, Message as MailMessage
 from functools import wraps
 from threading import Thread
 from werkzeug.middleware.proxy_fix import ProxyFix
-import base64  # ADICIONADO PARA ÁUDIO
 
 # --- App e Logging ---
 app = Flask(__name__)
@@ -221,24 +220,10 @@ def chat(protocolo):
     texto = request.form.get('mensagem','').strip()
     file  = request.files.get('anexo')
     anexo = None
-
-    # --- SUPORTE AO ÁUDIO COMO ANEXO ---
-    audio_data = request.form.get("audio_blob")
-    if audio_data and audio_data.startswith("data:audio"):
-        header, encoded = audio_data.split(",", 1)
-        audio_bytes = base64.b64decode(encoded)
-        ext = ".webm"
-        fname = f"{uuid.uuid4().hex}{ext}"
-        with open(os.path.join(UPLOAD_FOLDER, fname), "wb") as f:
-            f.write(audio_bytes)
-        anexo = fname  # Usa o áudio como anexo
-
-    # --- Se não houver áudio, tenta salvar anexo normal ---
-    if not anexo and file and file.filename and allowed_file(file.filename):
+    if file and file.filename and allowed_file(file.filename):
         ext   = file.filename.rsplit('.',1)[1].lower()
         anexo = f"{uuid.uuid4().hex}.{ext}"
         file.save(os.path.join(UPLOAD_FOLDER, anexo))
-
     if texto or anexo:
         m = MensagemChat(denuncia_id=d.id, autor='Usuário', texto=texto or None, anexo=anexo, lida_pelo_rh=False)
         db.session.add(m)
@@ -287,18 +272,7 @@ def admin_denuncia(protocolo):
         texto = request.form.get('mensagem','').strip()
         file  = request.files.get('anexo')
         fname = None
-
-        # SUPORTE AO ÁUDIO NO CHAT RH
-        audio_data = request.form.get("audio_blob")
-        if audio_data and audio_data.startswith("data:audio"):
-            header, encoded = audio_data.split(",", 1)
-            audio_bytes = base64.b64decode(encoded)
-            ext = ".webm"
-            fname = f"{uuid.uuid4().hex}{ext}"
-            with open(os.path.join(UPLOAD_FOLDER, fname), "wb") as f:
-                f.write(audio_bytes)
-
-        if not fname and file and file.filename and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
             ext   = file.filename.rsplit('.',1)[1].lower()
             fname = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(UPLOAD_FOLDER, fname))
